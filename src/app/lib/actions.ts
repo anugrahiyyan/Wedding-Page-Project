@@ -12,10 +12,14 @@ export async function authenticate(prevState: string | undefined, formData: Form
         const data = Object.fromEntries(formData);
         console.log('Login attempt for:', data.username);
 
+        const redirectTo = process.env.AUTH_URL
+            ? `${process.env.AUTH_URL}/dashboard`
+            : '/dashboard';
+
         await signIn('credentials', {
             username: data.username,
             password: data.password,
-            redirectTo: '/dashboard',
+            redirectTo,
         })
     } catch (error) {
         // Check for Next.js Redirect error
