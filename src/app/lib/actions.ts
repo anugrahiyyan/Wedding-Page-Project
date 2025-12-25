@@ -18,6 +18,11 @@ export async function authenticate(prevState: string | undefined, formData: Form
             redirectTo: '/dashboard',
         })
     } catch (error) {
+        // Check for Next.js Redirect error
+        if ((error as any)?.digest?.startsWith('NEXT_REDIRECT')) {
+            throw error;
+        }
+
         console.error('Sign in error:', error);
         if (error instanceof AuthError) {
             switch (error.type) {
