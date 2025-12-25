@@ -28,7 +28,7 @@ npm install
 Create a `.env` file:
 
 ```env
-DATABASE_URL="file:./prisma/dev.db"
+DATABASE_URL="file:./dev.db"
 AUTH_SECRET="your-secret-key-here"
 AUTH_TRUST_HOST=true
 ```
