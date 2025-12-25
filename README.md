@@ -31,6 +31,8 @@ Create a `.env` file:
 DATABASE_URL="file:./dev.db"
 AUTH_SECRET="your-secret-key-here"
 AUTH_TRUST_HOST=true
+# For production/VPS (use your actual IP or Domain)
+AUTH_URL="http://217.xx.xx.xx:3000" 
 ```
 
 > **Tip**: You can generate a secure `AUTH_SECRET` by running:
