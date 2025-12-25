@@ -38,7 +38,6 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
 
 /src/generated/prisma
 
@@ -46,4 +45,4 @@ next-env.d.ts
 noted.txt
 
 # Files
-package-lock.json
+# package-lock.json
