@@ -33,20 +33,24 @@ AUTH_SECRET="your-secret-key-here"
 AUTH_TRUST_HOST=true
 ```
 
-### Database Setup
+### Database Setup (Fresh Start)
+This will delete the existing database and create a brand new one.
 
 ```bash
+# 1. Delete existing dev.db if it exists
+# Windows (PowerShell)
+del prisma\dev.db
+# Unix
+rm prisma/dev.db
+
+# 2. Push schema to creating new DB
 npx prisma db push
-npx prisma generate
-```
 
-### Seed Admin User
-
-```bash
+# 3. Seed the admin user
 node src/scripts/seed.js
 ```
 
-Default credentials: `admin` / `admin`
+Default credentials: `admin` / `admin123`
 
 ---
 
@@ -62,21 +66,23 @@ npm run dev
 
 ---
 
-## Production Mode
+## Production Deployment
 
-### Build the application first:
+### 1. Build the application:
 
 ```bash
 npm run build
 ```
 
-### Then start the production server:
+> **Note**: This command STRICTLY uses variables from `.env`. Any `.env.local` file will be temporarily ignored to ensure a clean production build properly reflects the default configuration.
+
+### 2. Start the production server:
 
 ```bash
 npm start
 ```
 
-> **Important**: Always run `npm run build` before `npm start`. Production mode serves the pre-built assets, so changes won't appear until you rebuild.
+> **Important**: `dev.db` is NOT included in the git repository. You must run the database setup steps on your deployment server (or copy your local db if appropriate, though not recommended).
 
 ---
 
