@@ -194,6 +194,28 @@ export async function deleteUser(id: string) {
     }
 }
 
+// Update User Action
+export async function updateUser(id: string, username: string, password?: string) {
+    try {
+        const data: any = { username };
+        if (password && password.length > 0) {
+            if (password.length < 6) return { success: false, error: 'Password must be at least 6 characters' };
+            data.password = await bcryptjs.hash(password, 10);
+        }
+
+        await db.user.update({
+            where: { id },
+            data,
+        });
+
+        revalidatePath('/dashboard/users');
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to update user:', error);
+        return { success: false, error: 'Failed to update user' };
+    }
+}
+
 // Update Password Action
 export async function updatePassword(userId: string, currentPassword: string, newPassword: string): Promise<{ success: boolean; error?: string }> {
     try {

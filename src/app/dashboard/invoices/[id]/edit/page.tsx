@@ -15,5 +15,7 @@ export default async function EditInvoicePage({ params }: { params: Promise<{ id
         notFound();
     }
 
-    return <InvoiceEditor invoice={invoice} />;
+    const rootDomain = process.env.ROOT_DOMAIN || 'localhost:3000';
+
+    return <InvoiceEditor invoice={invoice} rootDomain={rootDomain} />;
 }

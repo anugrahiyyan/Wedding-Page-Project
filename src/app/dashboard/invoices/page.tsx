@@ -12,6 +12,7 @@ export default async function InvoicesPage() {
     });
 
     const templates = await db.template.findMany();
+    const rootDomain = process.env.ROOT_DOMAIN || 'localhost:3000'; // Default for safety
 
     return (
         <div className={styles.container}>
@@ -42,7 +43,7 @@ export default async function InvoicesPage() {
                             <label>Subdomain</label>
                             <div className={styles.inputGroup}>
                                 <input name="subdomain" placeholder="john-jane" required pattern="[a-z0-9-]+" className={styles.input} />
-                                <span className={styles.suffix}>.invitationwedding.my.id</span>
+                                <span className={styles.suffix}>.{rootDomain}</span>
                             </div>
                         </div>
                         <div className={styles.formGroup} style={{ justifyContent: 'flex-end' }}>
@@ -75,7 +76,7 @@ export default async function InvoicesPage() {
                             invoices.map((inv: any) => (
                                 <tr key={inv.id}>
                                     <td>
-                                        <a href={`http://${inv.subdomain}.localhost:3000`} target="_blank" className={styles.link}>
+                                        <a href={`http://${inv.subdomain}.${rootDomain}`} target="_blank" className={styles.link}>
                                             {inv.subdomain}
                                         </a>
                                     </td>

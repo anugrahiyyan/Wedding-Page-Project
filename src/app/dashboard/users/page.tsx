@@ -1,7 +1,7 @@
 import db from '@/lib/db';
 import styles from './page.module.css';
 import { createUser, deleteUser } from '@/app/lib/actions';
-import { RevalidateButton } from './revalidate-button';
+
 
 export const dynamic = 'force-dynamic';
 
@@ -43,12 +43,17 @@ export default async function UsersPage() {
                                 <td>{user.role}</td>
                                 <td>{user.createdAt.toLocaleDateString()}</td>
                                 <td>
-                                    <form action={async () => {
-                                        'use server';
-                                        await deleteUser(user.id);
-                                    }}>
-                                        <button className={styles.deleteButton}>Delete</button>
-                                    </form>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <a href={`/dashboard/users/${user.id}/edit`} className={styles.button} style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem', textDecoration: 'none', background: '#4b5563' }}>
+                                            Edit
+                                        </a>
+                                        <form action={async () => {
+                                            'use server';
+                                            await deleteUser(user.id);
+                                        }}>
+                                            <button className={styles.deleteButton}>Delete</button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
