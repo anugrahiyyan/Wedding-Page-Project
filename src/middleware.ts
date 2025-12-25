@@ -9,30 +9,14 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl;
     const hostname = request.headers.get('host') || '';
 
-    // Define known main domains (without subdomains)
-    const knownDomains = [
-        'localhost:3000',
-        'localhost',
-        '127.0.0.1:3000',
-        '127.0.0.1',
-        'invitationwedding.my.id',
-        'www.invitationwedding.my.id',
-    ];
-
     // Check if current hostname is NOT a known main domain (i.e., it has a subdomain)
     let subdomain: string | null = null;
 
-    // Check for localhost subdomains (e.g., john-jane.localhost:3000)
-    if (hostname.includes('.localhost') || hostname.includes('.127.0.0.1')) {
-        const parts = hostname.split('.');
-        if (parts[0] && parts[0] !== 'www') {
-            subdomain = parts[0];
-        }
-    }
-    // Check for production subdomains (e.g., john-jane.invitationwedding.my.id)
-    else if (hostname.endsWith('.invitationwedding.my.id')) {
-        const parts = hostname.replace('.invitationwedding.my.id', '');
-        if (parts && parts !== 'www') {
+    // Check for production subdomains
+    const rootDomain = process.env.ROOT_DOMAIN;
+    if (rootDomain && hostname.endsWith(rootDomain)) {
+        const parts = hostname.replace(`.${rootDomain}`, '');
+        if (parts && parts !== 'www' && parts !== rootDomain) {
             subdomain = parts;
         }
     }

@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node src/scripts/build-prod.js",
-    "start": "next start",
+    "build": "node src/scripts/run-strict.js next build",
+    "start": "node src/scripts/run-strict.js next start",
     "lint": "eslint",
     "db:setup": "npm run db:push && npm run db:seed",
     "db:push": "npx prisma db push",

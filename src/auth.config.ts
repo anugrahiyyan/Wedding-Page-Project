@@ -10,7 +10,16 @@ export const authConfig = {
             const isOnDashboard = nextUrl.pathname.startsWith('/dashboard');
             if (isOnDashboard) {
                 if (isLoggedIn) return true;
-                return false; // Redirect unauthenticated users to login page
+                if (isLoggedIn) return true;
+
+                // Force absolute URL for callback to avoid localhost loop on VPS
+                const callbackBase = process.env.AUTH_URL ?? nextUrl.origin;
+                const callbackUrl = `${callbackBase}${nextUrl.pathname}`;
+
+                const loginUrl = new URL('/login', nextUrl);
+                loginUrl.searchParams.set('callbackUrl', callbackUrl);
+
+                return Response.redirect(loginUrl);
             } else if (isLoggedIn && nextUrl.pathname === '/login') {
                 return Response.redirect(new URL('/dashboard', nextUrl));
             }

@@ -33,7 +33,11 @@ AUTH_SECRET="your-secret-key-here"
 AUTH_TRUST_HOST=true
 # For production/VPS (use your actual IP or Domain)
 AUTH_URL="http://217.xx.xx.xx:3000" 
+ROOT_DOMAIN="invitationwedding.my.id" # Your main domain for subdomains
 ```
+
+> **IMPORTANT**: Ensure you do **NOT** have a `.env.local` file on your VPS/Production server, or ensure its content matches your production URL. 
+> Next.js prioritizes `.env.local` over `.env` at runtime, which can cause localhost redirects if not configured correctly.
 
 > **Tip**: You can generate a secure `AUTH_SECRET` by running:
 > ```bash

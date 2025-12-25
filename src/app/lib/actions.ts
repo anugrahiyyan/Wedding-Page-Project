@@ -5,6 +5,7 @@ import db from '@/lib/db'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
+import { headers } from 'next/headers'
 import bcryptjs from 'bcryptjs'
 
 export async function authenticate(prevState: string | undefined, formData: FormData) {
@@ -12,9 +13,17 @@ export async function authenticate(prevState: string | undefined, formData: Form
         const data = Object.fromEntries(formData);
         console.log('Login attempt for:', data.username);
 
-        const redirectTo = process.env.AUTH_URL
-            ? `${process.env.AUTH_URL}/dashboard`
-            : '/dashboard';
+        // Determine base URL: specific env var > inferred from headers > default
+        let baseUrl = process.env.AUTH_URL;
+        if (!baseUrl) {
+            const headersList = await headers();
+            const host = headersList.get('host');
+            const proto = headersList.get('x-forwarded-proto') || 'http';
+            if (host) baseUrl = `${proto}://${host}`;
+        }
+
+        const redirectTo = baseUrl ? `${baseUrl}/dashboard` : '/dashboard';
+        console.log('Redirecting to:', redirectTo);
 
         await signIn('credentials', {
             username: data.username,
