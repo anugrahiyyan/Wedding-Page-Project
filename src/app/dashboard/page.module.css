@@ -1,0 +1,120 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.createButton {
+    background: #646cff;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.createButton:hover {
+    background: #535bf2;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.deleteButton {
+    background: #ff4b4b;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.deleteButton:hover {
+    background: #d43b3b;
+}
+
+.emptyState {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border-color: rgba(100, 108, 255, 0.3);
+}
+
+.cardPreview {
+    height: 180px;
+    background: #1a1a1a;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.placeholderThumbnail {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+}
+
+.cardContent {
+    padding: 1.5rem;
+}
+
+.actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+}
+
+.editLink,
+.previewLink {
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.editLink {
+    background: #646cff;
+    color: white;
+}
+
+.editLink:hover {
+    background: #535bf2;
+}
+
+.previewLink {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.previewLink:hover {
+    background: rgba(255, 255, 255, 0.2);
+}

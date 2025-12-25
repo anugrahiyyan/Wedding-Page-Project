@@ -1,0 +1,403 @@
+/* Base Styles using CSS Variables for easy theming later */
+.wrapper {
+    font-family: 'Georgia', serif;
+    color: #444;
+    line-height: 1.6;
+    background: #fff;
+    overflow-x: hidden;
+}
+
+/* Scroll Reveal Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.animateSection {
+    opacity: 0;
+    animation: fadeInUp 0.8s ease forwards;
+}
+
+.animateSection:nth-child(even) {
+    animation-delay: 0.1s;
+}
+
+.animateSection:nth-child(odd) {
+    animation-delay: 0.2s;
+}
+
+.galleryImg {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.galleryImg:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* HERO SECTION */
+.hero {
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+}
+
+.heroOverlay {
+    background: rgba(0, 0, 0, 0.4);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.title {
+    font-size: 3.5rem;
+    margin-bottom: 0.5rem;
+    font-family: 'Great Vibes', cursive;
+    /* Assuming Google Font imported globally */
+}
+
+.subtitle {
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+/* COUNTDOWN */
+.countdown {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.timeBox {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 1rem;
+    border-radius: 8px;
+    min-width: 80px;
+    backdrop-filter: blur(5px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.timeBox span {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+/* SECTIONS COMMON */
+.story,
+.gallery,
+.event,
+.rsvp,
+.gifts {
+    padding: 4rem 1.5rem;
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.sectionTitle {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    color: #2c3e50;
+    font-family: 'Great Vibes', cursive;
+}
+
+/* GALLERY */
+.galleryGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.galleryImg {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 8px;
+    transition: transform 0.3s;
+}
+
+.galleryImg:hover {
+    transform: scale(1.02);
+}
+
+/* EVENT & MAP */
+.eventDetails {
+    margin-bottom: 2rem;
+}
+
+.eventDate {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #e67e22;
+}
+
+.mapContainer {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* GIFTS */
+.giftGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.giftCard {
+    background: #f9f9f9;
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid #eee;
+}
+
+.accountNumber {
+    font-family: monospace;
+    font-size: 1.25rem;
+    margin: 0.5rem 0;
+    font-weight: bold;
+}
+
+.copyButton {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* RSVP FORM */
+.rsvpForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.rsvpForm input,
+.rsvpForm select {
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.rsvpForm button {
+    padding: 1rem;
+    background: #e67e22;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.rsvpForm button:hover {
+    background: #d35400;
+}
+
+/* MUSIC */
+.musicControl {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    backdrop-filter: blur(5px);
+    animation: rotate 10s linear infinite;
+}
+
+.footer {
+    background: #f4f4f4;
+    padding: 2rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #888;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .title {
+        font-size: 2.5rem;
+    }
+
+    .story,
+    .gallery,
+    .event,
+    .rsvp {
+        padding: 3rem 1rem;
+    }
+
+    .broadcastContainer {
+        bottom: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+
+    .broadcastBubble {
+        font-size: 0.85rem;
+        padding: 0.75rem;
+    }
+}
+
+/* Broadcast Bubbles - Bottom Right Corner */
+.broadcastContainer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 999;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 10px;
+    max-width: 320px;
+    pointer-events: none;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.broadcastBubble {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 1rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    animation: slideInUp 0.5s ease forwards;
+    pointer-events: auto;
+    border: 1px solid rgba(212, 166, 141, 0.3);
+}
+
+.broadcastBubble strong {
+    display: block;
+    color: #8b4a5c;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.broadcastBubble p {
+    margin: 0;
+    color: #555;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+/* RSVP Form Enhancements */
+.rsvpForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 400px;
+    margin: 2rem auto 0;
+}
+
+.rsvpForm input,
+.rsvpForm select,
+.rsvpForm textarea {
+    padding: 0.75rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+.rsvpForm textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.rsvpForm button {
+    background: linear-gradient(135deg, #8b4a5c 0%, #b8657a 100%);
+    color: white;
+    border: none;
+    padding: 0.875rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.rsvpForm button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 74, 92, 0.3);
+}
+
+.rsvpForm button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.commentInput {
+    background: #faf8f6;
+}
+
+.successMessage {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+    padding: 2rem;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 1.2rem;
+    margin-top: 1rem;
+}
+
+.errorText {
+    color: #e74c3c;
+    font-size: 0.9rem;
+    text-align: center;
+    margin: 0;
+}

@@ -1,0 +1,83 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 40px);
+    /* Adjust for padding in layout */
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.saveButton {
+    background: #646cff;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.saveButton:disabled {
+    opacity: 0.7;
+}
+
+.headerActions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.thumbnailInput {
+    padding: 0.5rem 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    color: white;
+    width: 300px;
+    font-size: 0.9rem;
+}
+
+.thumbnailInput::placeholder {
+    color: #666;
+}
+
+.workspace {
+    display: flex;
+    gap: 1rem;
+    flex: 1;
+    min-height: 0;
+    /* Enable scrolling */
+}
+
+.editorPane,
+.previewPane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.textarea {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-family: monospace;
+    padding: 1rem;
+    resize: none;
+}
+
+.iframe {
+    flex: 1;
+    border: none;
+    background: white;
+    width: 100%;
+}

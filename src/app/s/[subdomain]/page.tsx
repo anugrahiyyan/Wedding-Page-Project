@@ -1,0 +1,51 @@
+import db from '@/lib/db';
+import { notFound } from 'next/navigation';
+import TemplateRenderer from '@/components/TemplateRenderer';
+
+export const dynamic = 'force-dynamic';
+
+export default async function SubdomainPage({ params }: { params: Promise<{ subdomain: string }> }) {
+    const resolvedParams = await params;
+    const invoice = await db.invoice.findUnique({
+        where: { subdomain: resolvedParams.subdomain },
+        include: {
+            template: true,
+            rsvpSubmissions: {
+                where: { comment: { not: null } },
+                orderBy: { createdAt: 'desc' },
+                take: 10,
+                select: { guestName: true, comment: true, createdAt: true }
+            }
+        },
+    });
+
+    // Block access if invoice doesn't exist, has no template, or is ARCHIVED
+    if (!invoice || !invoice.template || invoice.status === 'ARCHIVED') {
+        notFound();
+    }
+
+    // Use copied templateContent if available, otherwise fall back to original template
+    let content;
+    try {
+        const contentSource = invoice.templateContent || invoice.template.content;
+        content = JSON.parse(contentSource);
+    } catch (e) {
+        content = {};
+    }
+
+    // Map wishes for client component
+    const initialWishes = invoice.rsvpSubmissions.map((s: any) => ({
+        guestName: s.guestName,
+        comment: s.comment,
+        createdAt: s.createdAt
+    }));
+
+    return (
+        <TemplateRenderer
+            content={content}
+            subdomain={resolvedParams.subdomain}
+            initialWishes={initialWishes}
+        />
+    );
+}
+

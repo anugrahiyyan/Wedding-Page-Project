@@ -1,0 +1,98 @@
+.container {
+    padding: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.title {
+    margin-bottom: 2rem;
+    font-size: 2rem;
+}
+
+.createSection {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 3rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.createSection h2 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+}
+
+.form {
+    display: flex;
+    gap: 1rem;
+}
+
+.inputGroup {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+}
+
+.input {
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    color: white;
+    flex: 1;
+}
+
+.button {
+    padding: 0.75rem 1.5rem;
+    background: #646cff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.button:hover {
+    background: #535bf2;
+}
+
+.listSection h2 {
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table th,
+.table td {
+    text-align: left;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.table th {
+    background: rgba(255, 255, 255, 0.05);
+    font-weight: 600;
+}
+
+.deleteButton {
+    background: #ff4b4b;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.deleteButton:hover {
+    background: #d43b3b;
+}

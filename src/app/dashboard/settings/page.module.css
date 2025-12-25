@@ -1,0 +1,91 @@
+.container {
+    padding: 2rem;
+    max-width: 600px;
+}
+
+.title {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    color: #fff;
+}
+
+.section {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.section h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.25rem;
+}
+
+.hint {
+    color: #888;
+    margin: 0 0 1.5rem;
+    font-size: 0.9rem;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.field label {
+    font-size: 0.9rem;
+    color: #aaa;
+}
+
+.input {
+    padding: 0.75rem 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: white;
+    font-size: 1rem;
+}
+
+.input:focus {
+    outline: none;
+    border-color: #646cff;
+}
+
+.button {
+    padding: 0.875rem 1.5rem;
+    background: #646cff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.5rem;
+}
+
+.button:disabled {
+    opacity: 0.6;
+}
+
+.button:hover:not(:disabled) {
+    background: #5558dd;
+}
+
+.success {
+    color: #2ecc71;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.error {
+    color: #e74c3c;
+    margin: 0;
+    font-size: 0.9rem;
+}
