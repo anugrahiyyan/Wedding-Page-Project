@@ -33,21 +33,23 @@ AUTH_SECRET="your-secret-key-here"
 AUTH_TRUST_HOST=true
 ```
 
+> **Tip**: You can generate a secure `AUTH_SECRET` by running:
+> ```bash
+> openssl rand -base64 32
+> ```
+
 ### Database Setup (Fresh Start)
 This will delete the existing database and create a brand new one.
 
 ```bash
-# 1. Delete existing dev.db if it exists
+# 1. Delete existing dev.db if it exists (Optional, for full reset)
 # Windows (PowerShell)
 del prisma\dev.db
 # Unix
 rm prisma/dev.db
 
-# 2. Push schema to creating new DB
-npx prisma db push
-
-# 3. Seed the admin user
-node src/scripts/seed.js
+# 2. Run the setup (creates DB + seeds admin)
+npm run db:setup
 ```
 
 Default credentials: `admin` / `admin123`

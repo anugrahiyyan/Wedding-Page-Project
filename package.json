@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "node src/scripts/build-prod.js",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:setup": "npm run db:push && npm run db:seed",
+    "db:push": "npx prisma db push",
+    "db:seed": "node src/scripts/seed.js"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
