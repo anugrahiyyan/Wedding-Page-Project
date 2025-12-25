@@ -1,6 +1,6 @@
 import db from '@/lib/db';
 import styles from './page.module.css';
-import { toggleInvoiceStatus } from '@/app/lib/actions';
+import { toggleInvoiceStatus, deleteInvoice } from '@/app/lib/actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,12 +39,24 @@ export default async function HistoryPage() {
                                     <td>{inv.template.name}</td>
                                     <td>{inv.updatedAt.toLocaleDateString()}</td>
                                     <td>
-                                        <form action={async () => {
-                                            'use server';
-                                            await toggleInvoiceStatus(inv.id, 'ACTIVE');
-                                        }}>
-                                            <button className={styles.restoreBtn}>Restore</button>
-                                        </form>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <form action={async () => {
+                                                'use server';
+                                                await toggleInvoiceStatus(inv.id, 'ACTIVE');
+                                            }}>
+                                                <button className={styles.restoreBtn}>Restore</button>
+                                            </form>
+                                            <form action={async () => {
+                                                'use server';
+                                                await deleteInvoice(inv.id);
+                                            }} onSubmit={(e) => {
+                                                if (!confirm('Are you sure you want to delete this invoice? This cannot be undone.')) {
+                                                    e.preventDefault();
+                                                }
+                                            }}>
+                                                <button style={{ background: '#dc2626', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer' }} title="Delete Permanently">Delete</button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             ))

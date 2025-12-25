@@ -324,6 +324,20 @@ export async function toggleInvoiceStatus(id: string, newStatus: 'ACTIVE' | 'ARC
     }
 }
 
+// Delete Action
+export async function deleteInvoice(id: string) {
+    try {
+        await db.invoice.delete({
+            where: { id },
+        })
+        revalidatePath('/dashboard/invoices')
+        revalidatePath('/dashboard/history')
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: 'Failed to delete invoice' }
+    }
+}
+
 // Update Invoice Content
 export async function updateInvoiceContent(id: string, templateContent: string) {
     try {
