@@ -16,13 +16,30 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
+model Tier {
+  id          String   @id @default(cuid())
+  name        String   @unique  // e.g., "Starter", "Standard", "Premium"
+  priceMin    Int      // Minimum price in IDR
+  priceMax    Int      // Maximum price in IDR
+  features    String?  // JSON array of features, e.g., ["RSVP", "Basic Template"]
+  color       String   @default("#646cff")  // Hex color for tier badge
+  sortOrder   Int      @default(0)  // For display ordering
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  templates   Template[]
+}
+
 model Template {
   id          String   @id @default(cuid())
   name        String
   description String?
   thumbnail   String?  // Path to image
   content     String   // JSON structure enabling dynamic fields
+  htmlContent String?  // HTML/CSS/JS template content
   isPublic    Boolean  @default(false)
+  tierId      String?  // Foreign key to Tier
+  tier        Tier?    @relation(fields: [tierId], references: [id])
+  price       Int?     // Custom price in IDR (overrides tier range)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   invoices    Invoice[]
@@ -37,6 +54,8 @@ model Invoice {
   templateContent String?  // Copied template JSON for this client
   accessToken     String   @default(cuid()) // 6-digit token for RSVP access
   status          String   @default("ACTIVE")
+  subdomainMode   String   @default("VIP")  // VIP = subdomain, BASIC = /s/path
+  agreedPrice     Int?     // Fixed price deal in IDR
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   rsvpSubmissions RsvpSubmission[]
@@ -53,3 +72,4 @@ model RsvpSubmission {
   comment    String?  // Guest wishes/congratulations
   createdAt  DateTime @default(now())
 }
+

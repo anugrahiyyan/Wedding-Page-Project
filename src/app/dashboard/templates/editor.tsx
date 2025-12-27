@@ -1,33 +1,29 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { updateTemplate } from '@/app/lib/actions';
 import styles from './editor.module.css';
 
+// Dynamically import Monaco to avoid SSR issues
+const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
+
+type EditorMode = 'json' | 'html';
+
 export default function Editor({ template }: { template: any }) {
-    const [content, setContent] = useState(template.content);
+    const [mode, setMode] = useState<EditorMode>('json');
+    const [jsonContent, setJsonContent] = useState(template.content);
+    const [htmlContent, setHtmlContent] = useState(template.htmlContent || getDefaultHtmlTemplate());
     const [thumbnail, setThumbnail] = useState(template.thumbnail || '');
-    const [parsedContent, setParsedContent] = useState(JSON.parse(template.content));
     const [isSaving, setIsSaving] = useState(false);
-
-    // Update parsed object when text changes
-    const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        const newContent = e.target.value;
-        setContent(newContent);
-        try {
-            setParsedContent(JSON.parse(newContent));
-        } catch (e) {
-            // invalid json, ignore
-        }
-    };
-
     const [refreshKey, setRefreshKey] = useState(0);
 
     const handleSave = async () => {
         setIsSaving(true);
-        await updateTemplate(template.id, content, thumbnail);
+        // Save both JSON and HTML content
+        await updateTemplate(template.id, jsonContent, thumbnail, htmlContent);
         setIsSaving(false);
-        setRefreshKey(prev => prev + 1); // Force refresh after save
+        setRefreshKey(prev => prev + 1);
     };
 
     return (
@@ -47,15 +43,65 @@ export default function Editor({ template }: { template: any }) {
                     </button>
                 </div>
             </header>
+
             <div className={styles.workspace}>
                 <div className={styles.editorPane}>
-                    <h2>Content (JSON)</h2>
-                    <textarea
-                        className={styles.textarea}
-                        value={content}
-                        onChange={handleContentChange}
-                    />
-                    {/* We could add form fields here that map to parsedContent */}
+                    {/* Tab buttons */}
+                    <div className={styles.tabs}>
+                        <button
+                            className={`${styles.tab} ${mode === 'json' ? styles.tabActive : ''}`}
+                            onClick={() => setMode('json')}
+                        >
+                            📋 JSON Editor
+                        </button>
+                        <button
+                            className={`${styles.tab} ${mode === 'html' ? styles.tabActive : ''}`}
+                            onClick={() => setMode('html')}
+                        >
+                            🎨 HTML Editor
+                        </button>
+                    </div>
+
+                    {/* Monaco Editor */}
+                    <div className={styles.monacoContainer}>
+                        {mode === 'json' ? (
+                            <MonacoEditor
+                                height="100%"
+                                language="json"
+                                theme="vs-dark"
+                                value={jsonContent}
+                                onChange={(value) => setJsonContent(value || '')}
+                                options={{
+                                    minimap: { enabled: false },
+                                    fontSize: 14,
+                                    wordWrap: 'on',
+                                    automaticLayout: true,
+                                    formatOnPaste: true,
+                                    formatOnType: true,
+                                }}
+                            />
+                        ) : (
+                            <MonacoEditor
+                                height="100%"
+                                language="html"
+                                theme="vs-dark"
+                                value={htmlContent}
+                                onChange={(value) => setHtmlContent(value || '')}
+                                options={{
+                                    minimap: { enabled: false },
+                                    fontSize: 14,
+                                    wordWrap: 'on',
+                                    automaticLayout: true,
+                                }}
+                            />
+                        )}
+                    </div>
+
+                    {mode === 'html' && (
+                        <p className={styles.hint}>
+                            📌 HTML mode is for custom template development. Use CSS/JS inline or via style/script tags.
+                        </p>
+                    )}
                 </div>
                 <div className={styles.previewPane}>
                     <h2>Live Preview (Updates on Save)</h2>
@@ -70,3 +116,48 @@ export default function Editor({ template }: { template: any }) {
     );
 }
 
+function getDefaultHtmlTemplate(): string {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wedding Invitation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #1a0a0a 0%, #2d1515 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background-size: cover;
+            background-position: center;
+        }
+        .hero h1 {
+            font-size: 3rem;
+            color: #d4a68d;
+            margin-bottom: 1rem;
+        }
+        .hero p {
+            font-size: 1.25rem;
+            color: #c9a892;
+        }
+    </style>
+</head>
+<body>
+    <section class="hero">
+        <h1>John & Jane</h1>
+        <p>We're getting married!</p>
+        <p>December 25, 2025</p>
+    </section>
+</body>
+</html>`;
+}

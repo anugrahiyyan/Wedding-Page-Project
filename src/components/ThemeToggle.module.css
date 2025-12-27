@@ -1,0 +1,33 @@
+.toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+.toggle:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.label {
+    font-weight: 500;
+}
+
+/* Light theme */
+[data-theme="light"] .toggle {
+    border-color: rgba(0, 0, 0, 0.2);
+    color: rgba(0, 0, 0, 0.8);
+}
+
+[data-theme="light"] .toggle:hover {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.3);
+}

@@ -1,0 +1,121 @@
+.previewNavbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, rgba(26, 10, 10, 0.95) 0%, rgba(45, 21, 21, 0.95) 100%);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(212, 166, 141, 0.2);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+.navbarBrand {
+    font-family: 'Great Vibes', cursive;
+    font-size: 1.5rem;
+    color: #d4a68d;
+}
+
+.navbarActions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.navButton {
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    border: none;
+}
+
+.navButtonSecondary {
+    background: transparent;
+    border: 1px solid rgba(212, 166, 141, 0.5);
+    color: #d4a68d;
+}
+
+.navButtonSecondary:hover {
+    background: rgba(212, 166, 141, 0.1);
+    border-color: #d4a68d;
+}
+
+.navButtonPrimary {
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+}
+
+.navButtonPrimary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+}
+
+/* Mobile floating bar */
+.mobileFloatingBar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(26, 10, 10, 0.98) 0%, rgba(45, 21, 21, 0.98) 100%);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(212, 166, 141, 0.2);
+    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.3);
+}
+
+.mobileButton {
+    padding: 0.75rem 1.25rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    border: none;
+    flex: 1;
+    justify-content: center;
+    max-width: 160px;
+}
+
+.mobileButtonSecondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: #f5e6dc;
+    border: 1px solid rgba(212, 166, 141, 0.3);
+}
+
+.mobileButtonPrimary {
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    color: white;
+}
+
+/* Media queries */
+@media (min-width: 769px) {
+    .mobileFloatingBar {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .previewNavbar {
+        display: none;
+    }
+}

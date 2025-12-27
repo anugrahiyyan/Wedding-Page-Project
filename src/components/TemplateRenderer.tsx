@@ -136,35 +136,133 @@ export default function TemplateRenderer({
 
     if (!isClient) return <div className={styles.wrapper} style={{ minHeight: '100vh' }}></div>;
 
-    const FloatingCheckout = () => (
-        <a
-            href={`https://wa.me/6281230826731?text=Hi,%20I%20want%20to%20buy%20template:%20${encodeURIComponent(templateName)}`}
-            target="_blank"
-            style={{
+    const waLink = `https://wa.me/6281230826731?text=Hi,%20saya%20ingin%20pesan%20template:%20${encodeURIComponent(templateName)}`;
+
+    const PreviewNavbar = () => (
+        <>
+            {/* Desktop Navbar - Top */}
+            <nav style={{
                 position: 'fixed',
-                bottom: '20px',
-                left: '20px',
+                top: 0,
+                left: 0,
+                right: 0,
                 zIndex: 1000,
-                background: '#25D366',
-                color: 'white',
-                padding: '12px 24px',
-                borderRadius: '50px',
-                textDecoration: 'none',
-                fontWeight: 'bold',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
                 display: 'flex',
+                justifyContent: 'space-between',
                 alignItems: 'center',
-                gap: '8px',
-                border: '2px solid white'
-            }}
-        >
-            <span>🛍️ Buy This Template</span>
-        </a>
+                padding: '1rem 2rem',
+                background: 'linear-gradient(135deg, rgba(26, 10, 10, 0.95) 0%, rgba(45, 21, 21, 0.95) 100%)',
+                backdropFilter: 'blur(20px)',
+                borderBottom: '1px solid rgba(212, 166, 141, 0.2)',
+                boxShadow: '0 4px 30px rgba(0, 0, 0, 0.3)',
+            }} className="desktop-nav">
+                <span style={{ fontFamily: "'Great Vibes', cursive", fontSize: '1.5rem', color: '#d4a68d' }}>
+                    Undangan Rabiku
+                </span>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    <a
+                        href="/"
+                        style={{
+                            padding: '0.75rem 1.5rem',
+                            borderRadius: '50px',
+                            background: 'transparent',
+                            border: '1px solid rgba(212, 166, 141, 0.5)',
+                            color: '#d4a68d',
+                            textDecoration: 'none',
+                            fontWeight: 600,
+                            fontSize: '0.9rem',
+                            transition: 'all 0.3s ease',
+                        }}
+                    >
+                        ← Kembali
+                    </a>
+                    <a
+                        href={waLink}
+                        target="_blank"
+                        style={{
+                            padding: '0.75rem 1.5rem',
+                            borderRadius: '50px',
+                            background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                            color: 'white',
+                            textDecoration: 'none',
+                            fontWeight: 600,
+                            fontSize: '0.9rem',
+                            boxShadow: '0 4px 15px rgba(37, 211, 102, 0.3)',
+                            transition: 'all 0.3s ease',
+                        }}
+                    >
+                        📲 Pesan Sekarang
+                    </a>
+                </div>
+            </nav>
+
+            {/* Mobile Bottom Bar */}
+            <nav style={{
+                position: 'fixed',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                zIndex: 1000,
+                display: 'none',
+                justifyContent: 'space-around',
+                alignItems: 'center',
+                padding: '0.75rem 1rem',
+                background: 'linear-gradient(135deg, rgba(26, 10, 10, 0.98) 0%, rgba(45, 21, 21, 0.98) 100%)',
+                backdropFilter: 'blur(20px)',
+                borderTop: '1px solid rgba(212, 166, 141, 0.2)',
+                boxShadow: '0 -4px 30px rgba(0, 0, 0, 0.3)',
+            }} className="mobile-nav">
+                <a
+                    href="/"
+                    style={{
+                        padding: '0.75rem 1rem',
+                        borderRadius: '50px',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(212, 166, 141, 0.3)',
+                        color: '#f5e6dc',
+                        textDecoration: 'none',
+                        fontWeight: 600,
+                        fontSize: '0.8rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                    }}
+                >
+                    ← Kembali
+                </a>
+                <a
+                    href={waLink}
+                    target="_blank"
+                    style={{
+                        padding: '0.75rem 1.5rem',
+                        borderRadius: '50px',
+                        background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                        color: 'white',
+                        textDecoration: 'none',
+                        fontWeight: 600,
+                        fontSize: '0.8rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                    }}
+                >
+                    📲 Pesan
+                </a>
+            </nav>
+
+            {/* CSS for responsive display */}
+            <style>{`
+                @media (max-width: 768px) {
+                    .desktop-nav { display: none !important; }
+                    .mobile-nav { display: flex !important; }
+                }
+            `}</style>
+        </>
     );
 
     return (
         <div className={styles.wrapper}>
-            {showCheckout && <FloatingCheckout />}
+            {showCheckout && <PreviewNavbar />}
 
             {/* Broadcast Bubbles - Bottom Right */}
             {currentBubble && (
@@ -310,7 +408,7 @@ export default function TemplateRenderer({
             )}
 
             <footer className={styles.footer}>
-                <p>Made with ❤️ using WeddingAdmin</p>
+                <p>Made with ❤️ using Undangan Rabiku</p>
             </footer>
         </div>
     );

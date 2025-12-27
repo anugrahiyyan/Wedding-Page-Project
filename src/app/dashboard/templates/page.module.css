@@ -8,19 +8,20 @@
 .title {
     font-size: 2rem;
     font-weight: 600;
+    color: var(--foreground);
 }
 
 .createButton {
-    background: #646cff;
+    background: var(--accent);
     color: white;
     padding: 0.75rem 1.5rem;
     border-radius: 8px;
-    font-weight: 500;
-    transition: background 0.2s;
+    font-weight: 600;
+    transition: all 0.2s;
 }
 
 .createButton:hover {
-    background: #535bf2;
+    filter: brightness(1.1);
 }
 
 .grid {
@@ -48,40 +49,45 @@
     grid-column: 1 / -1;
     text-align: center;
     padding: 4rem;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--card-bg);
     border-radius: 12px;
-    border: 1px dashed rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.5);
+    border: 1px dashed var(--card-border);
+    color: var(--text-muted);
 }
 
 .card {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--card-bg);
     border-radius: 12px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--card-border);
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    border-color: rgba(100, 108, 255, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border-color: var(--accent);
 }
 
 .cardPreview {
     height: 180px;
-    background: #1a1a1a;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: var(--input-bg);
+    border-bottom: 1px solid var(--card-border);
 }
 
 .placeholderThumbnail {
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--input-bg) 100%);
 }
 
 .cardContent {
     padding: 1.5rem;
+}
+
+.cardContent h3 {
+    color: var(--foreground);
+    margin-bottom: 0.5rem;
 }
 
 .actions {
@@ -101,20 +107,20 @@
 }
 
 .editLink {
-    background: #646cff;
+    background: var(--accent);
     color: white;
 }
 
 .editLink:hover {
-    background: #535bf2;
+    filter: brightness(1.1);
 }
 
 .previewLink {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: var(--card-bg);
+    color: var(--foreground);
+    border: 1px solid var(--card-border);
 }
 
 .previewLink:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--nav-hover);
 }

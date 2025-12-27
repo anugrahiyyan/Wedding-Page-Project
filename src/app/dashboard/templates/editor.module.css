@@ -81,3 +81,46 @@
     background: white;
     width: 100%;
 }
+
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.tab {
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.tabActive {
+    background: var(--accent, #646cff);
+    color: white;
+    border-color: var(--accent, #646cff);
+}
+
+/* Monaco container */
+.monacoContainer {
+    flex: 1;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    overflow: hidden;
+    min-height: 400px;
+}
+
+.hint {
+    margin-top: 0.75rem;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+}

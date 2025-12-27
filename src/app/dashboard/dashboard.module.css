@@ -1,53 +1,128 @@
 .container {
     display: flex;
-    min-height: 100vh;
+    height: 100vh;
+    /* Fixed height for full screen */
+    overflow: hidden;
+    /* Prevent body scroll */
     background-color: var(--background);
     color: var(--foreground);
 }
 
 .sidebar {
     width: 250px;
-    background: rgba(0, 0, 0, 0.2);
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 1.5rem;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--sidebar-border);
+    padding: 1rem;
     display: flex;
     flex-direction: column;
+    transition: width 0.2s ease;
+    overflow-y: auto;
+    /* Allow sidebar to scroll if too tall */
+}
+
+.sidebarCollapsed {
+    width: 70px;
+}
+
+.sidebarHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--sidebar-border);
 }
 
 .logo {
     font-size: 1.5rem;
     font-weight: bold;
-    margin-bottom: 2rem;
-    background: linear-gradient(45deg, #646cff, #a264ff);
+    background: linear-gradient(45deg, var(--logo-gradient-1), var(--logo-gradient-2));
     -webkit-background-clip: text;
+    background-clip: text;
     color: transparent;
+}
+
+.collapseButton {
+    background: transparent;
+    border: 1px solid var(--sidebar-border);
+    color: var(--nav-text);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 1rem;
+}
+
+.collapseButton:hover {
+    background: var(--nav-hover);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+/* Larger button when sidebar is collapsed */
+.collapseButtonExpanded {
+    width: 44px;
+    height: 44px;
+    font-size: 1.25rem;
+    margin: 0.5rem auto;
+}
+
+.sidebarCollapsed .sidebarHeader {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
 }
 
 .nav {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.25rem;
     flex: 1;
 }
 
 .navItem {
     padding: 0.75rem 1rem;
     border-radius: 8px;
-    transition: background 0.2s;
-    color: rgba(255, 255, 255, 0.8);
+    transition: all 0.2s;
+    color: var(--nav-text);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .navItem:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: #fff;
+    background: var(--nav-hover);
+    color: var(--foreground);
+}
+
+.navIcon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.sidebarCollapsed .navItem {
+    justify-content: center;
+    padding: 0.875rem;
+}
+
+.sidebarFooter {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--sidebar-border);
 }
 
 .logoutButton {
-    margin-top: auto;
     padding: 0.75rem;
     background: none;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.6);
+    border: 1px solid var(--sidebar-border);
+    color: var(--text-muted);
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s;
@@ -63,6 +138,13 @@
 
 .main {
     flex: 1;
-    padding: 2rem;
+    display: flex;
+    flex-direction: column;
     overflow-y: auto;
+    background: var(--background);
+}
+
+.mainContent {
+    flex: 1;
+    padding: 2rem;
 }

@@ -21,10 +21,13 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    // If subdomain found, rewrite to /s/[subdomain]
+    // If subdomain found, rewrite to /s/[subdomain] preserving the path and query params
     if (subdomain) {
-        console.log(`[Middleware] Subdomain detected: ${subdomain}, rewriting to /s/${subdomain}`);
-        return NextResponse.rewrite(new URL(`/s/${subdomain}`, request.url));
+        const path = url.pathname; // e.g., /rsvp or empty
+        const search = url.search; // e.g., ?token=123456
+        const rewritePath = `/s/${subdomain}${path}${search}`;
+        console.log(`[Middleware] Subdomain detected: ${subdomain}, rewriting to ${rewritePath}`);
+        return NextResponse.rewrite(new URL(rewritePath, request.url));
     }
 
     // Run Auth Middleware for Dashboard routes

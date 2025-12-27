@@ -25,7 +25,13 @@ npm install
 
 ### Environment Variables
 
-Create a `.env` file:
+Copy the `.env.example` file to `.env`:
+
+```bash
+cp .env.example .env
+```
+
+Edit the `.env` file with your values:  
 
 ```env
 DATABASE_URL="file:./dev.db"
@@ -33,11 +39,8 @@ AUTH_SECRET="your-secret-key-here"
 AUTH_TRUST_HOST=true
 # For production/VPS (use your actual IP or Domain)
 AUTH_URL="http://217.xx.xx.xx:3000" 
-ROOT_DOMAIN="invitationwedding.my.id" # Your main domain for subdomains
+ROOT_DOMAIN="yourdomain.com" # Your main domain for subdomains
 ```
-
-> **IMPORTANT**: Ensure you do **NOT** have a `.env.local` file on your VPS/Production server, or ensure its content matches your production URL. 
-> Next.js prioritizes `.env.local` over `.env` at runtime, which can cause localhost redirects if not configured correctly.
 
 > **Tip**: You can generate a secure `AUTH_SECRET` by running:
 > ```bash
@@ -48,13 +51,7 @@ ROOT_DOMAIN="invitationwedding.my.id" # Your main domain for subdomains
 This will delete the existing database and create a brand new one.
 
 ```bash
-# 1. Delete existing dev.db if it exists (Optional, for full reset)
-# Windows (PowerShell)
-del prisma\dev.db
-# Unix
-rm prisma/dev.db
-
-# 2. Run the setup (creates DB + seeds admin)
+# 1. Run the setup (creates DB + seeds admin)
 npm run db:setup
 ```
 
@@ -89,9 +86,15 @@ npm run build
 ```bash
 npm start
 ```
+### 3. Using pm2 for production:
 
-> **Important**: `dev.db` is NOT included in the git repository. You must run the database setup steps on your deployment server (or copy your local db if appropriate, though not recommended).
-
+```bash
+npm install -g pm2
+pm2 start npm --name wedding-page -- start
+pm2 save
+pm2 startup
+```
+> **Note**: You can use `pm2 monit` to monitor your server.
 ---
 
 ## Project Structure
@@ -99,17 +102,23 @@ npm start
 ```
 src/
 ├── app/
-│   ├── page.tsx          # Public homepage
-│   ├── login/            # Auth pages
-│   ├── dashboard/        # Admin panel
-│   │   ├── templates/    # Template management
-│   │   ├── users/        # User management
-│   │   ├── invoices/     # Invoice (subdomain) management
-│   │   └── history/      # Archived clients
-│   ├── preview/[id]/     # Template preview
-│   └── s/[subdomain]/    # Subdomain handler
-├── components/           # Shared components
-└── lib/                  # Utilities & DB
+│   ├── page.tsx               # Public homepage
+│   ├── login/                 # Auth pages
+│   ├── dashboard/             # Admin panel
+│   │   ├── templates/         # Template management
+│   │   ├── tiers/             # Tier management
+│   │   ├── users/             # User management
+│   │   ├── invoices/          # Invoice (subdomain) management
+│   │   └── history/           # Archived clients
+│   ├── preview/[id]/          # Template preview
+│   ├── s/[subdomain]/         # Subdomain handler
+│   └── api/                   # API Routes (upload, etc.)
+├── components/                # Shared components (NavBar, Modals, etc.)
+├── contexts/                  # React contexts (ThemeContext)
+├── lib/                       # Utilities (DB, Hash, Auth)
+├── scripts/                   # Build & Setup scripts
+├── auth.ts                    # Auth.js configuration
+└── middleware.ts              # Next.js Middleware (Subdomain routing)
 ```
 
 ## Subdomain Routing

@@ -1,58 +1,91 @@
 .container {
-    padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
 }
 
-.title {
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 2rem;
+}
+
+.title {
     font-size: 2rem;
-    color: #fff;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 1rem;
+    color: var(--foreground);
+    margin: 0;
 }
 
 .listSection {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 1rem;
 }
 
+/* Table */
 .table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
 }
 
 .table th,
 .table td {
     text-align: left;
     padding: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--card-border);
+    color: var(--foreground);
 }
 
 .table th {
+    background: var(--nav-hover);
     font-weight: 600;
-    color: #ccc;
-    background: rgba(0, 0, 0, 0.2);
 }
 
-.dimmed {
-    color: #666;
+.table th:first-child {
+    border-top-left-radius: 12px;
+}
+
+.table th:last-child {
+    border-top-right-radius: 12px;
+}
+
+.table tr:last-child td:first-child {
+    border-bottom-left-radius: 12px;
+}
+
+.table tr:last-child td:last-child {
+    border-bottom-right-radius: 12px;
+}
+
+.table tr:last-child td {
+    border-bottom: none;
 }
 
 .restoreBtn {
     background: transparent;
     border: 1px solid #2ecc71;
     color: #2ecc71;
-    padding: 0.3rem 0.8rem;
-    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    /* Match standard radius */
     cursor: pointer;
-    font-size: 0.8rem;
+    font-weight: 600;
+    font-size: 0.875rem;
     transition: all 0.2s;
 }
 
 .restoreBtn:hover {
     background: #2ecc71;
     color: white;
+}
+
+.emptyState {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-muted);
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px dashed var(--card-border);
 }

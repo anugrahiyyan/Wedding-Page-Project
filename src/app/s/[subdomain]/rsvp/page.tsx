@@ -33,9 +33,9 @@ export default async function RsvpPage({
         return (
             <div className={styles.container}>
                 <div className={styles.pinCard}>
-                    <h1>🎊 Guest Confirmations</h1>
-                    <p>Enter your 6-digit PIN to view who's attending</p>
-                    <form className={styles.pinForm}>
+                    <h1>🎊 Konfirmasi Tamu</h1>
+                    <p>Masukkan PIN 6 digit untuk melihat daftar tamu</p>
+                    <form method="GET" className={styles.pinForm}>
                         <input
                             type="text"
                             name="token"
@@ -44,10 +44,11 @@ export default async function RsvpPage({
                             pattern="[0-9]{6}"
                             className={styles.pinInput}
                             autoComplete="off"
+                            required
                         />
-                        <button type="submit" className={styles.pinButton}>View Guests</button>
+                        <button type="submit" className={styles.pinButton}>Lihat Tamu</button>
                     </form>
-                    <p className={styles.hint}>This PIN was provided by your wedding admin</p>
+                    <p className={styles.hint}>PIN diberikan oleh admin undangan Anda</p>
                 </div>
             </div>
         );
@@ -60,58 +61,60 @@ export default async function RsvpPage({
     return (
         <div className={styles.container}>
             <header className={styles.header}>
-                <h1>🎊 Guest Confirmations</h1>
-                <p className={styles.subtitle}>{invoice.customerName}'s Wedding</p>
+                <h1>🎊 Konfirmasi Tamu</h1>
+                <p className={styles.subtitle}>Pernikahan {invoice.customerName}</p>
             </header>
 
             <div className={styles.stats}>
-                <div className={styles.statCard}>
+                <div className={`${styles.statCard} ${styles.statAttending}`}>
                     <span className={styles.statNumber}>{attending.length}</span>
-                    <span className={styles.statLabel}>✅ Attending</span>
+                    <span className={styles.statLabel}>Hadir</span>
                 </div>
-                <div className={styles.statCard}>
+                <div className={`${styles.statCard} ${styles.statNotAttending}`}>
                     <span className={styles.statNumber}>{notAttending.length}</span>
-                    <span className={styles.statLabel}>❌ Not Attending</span>
+                    <span className={styles.statLabel}>Tidak Hadir</span>
                 </div>
                 <div className={styles.statCard}>
                     <span className={styles.statNumber}>{invoice.rsvpSubmissions.length}</span>
-                    <span className={styles.statLabel}>📋 Total</span>
+                    <span className={styles.statLabel}>Total</span>
                 </div>
             </div>
 
-            <section className={styles.listSection}>
-                <h2>✅ Attending ({attending.length})</h2>
-                {attending.length === 0 ? (
-                    <p className={styles.empty}>No confirmations yet</p>
-                ) : (
-                    <ul className={styles.guestList}>
-                        {attending.map((guest: any) => (
-                            <li key={guest.id} className={styles.guestItem}>
-                                <strong>{guest.guestName}</strong>
-                                {guest.email && <span className={styles.email}>{guest.email}</span>}
-                                {guest.allergies && <span className={styles.allergies}>⚠️ {guest.allergies}</span>}
-                                {guest.comment && <p className={styles.comment}>"{guest.comment}"</p>}
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </section>
+            <div className={styles.listsContainer}>
+                <section className={`${styles.listSection} ${styles.attendingSection}`}>
+                    <h2>✅ Hadir ({attending.length})</h2>
+                    {attending.length === 0 ? (
+                        <p className={styles.empty}>Belum ada konfirmasi</p>
+                    ) : (
+                        <ul className={styles.guestList}>
+                            {attending.map((guest: any) => (
+                                <li key={guest.id} className={styles.guestItem}>
+                                    <strong>{guest.guestName}</strong>
+                                    {guest.email && <span className={styles.email}>{guest.email}</span>}
+                                    {guest.allergies && <span className={styles.allergies}>⚠️ {guest.allergies}</span>}
+                                    {guest.comment && <p className={styles.comment}>"{guest.comment}"</p>}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </section>
 
-            <section className={styles.listSection}>
-                <h2>❌ Not Attending ({notAttending.length})</h2>
-                {notAttending.length === 0 ? (
-                    <p className={styles.empty}>No declines yet</p>
-                ) : (
-                    <ul className={styles.guestList}>
-                        {notAttending.map((guest: any) => (
-                            <li key={guest.id} className={styles.guestItem}>
-                                <strong>{guest.guestName}</strong>
-                                {guest.comment && <p className={styles.comment}>"{guest.comment}"</p>}
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </section>
+                <section className={`${styles.listSection} ${styles.notAttendingSection}`}>
+                    <h2>❌ Tidak Hadir ({notAttending.length})</h2>
+                    {notAttending.length === 0 ? (
+                        <p className={styles.empty}>Belum ada penolakan</p>
+                    ) : (
+                        <ul className={styles.guestList}>
+                            {notAttending.map((guest: any) => (
+                                <li key={guest.id} className={styles.guestItem}>
+                                    <strong>{guest.guestName}</strong>
+                                    {guest.comment && <p className={styles.comment}>"{guest.comment}"</p>}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </section>
+            </div>
         </div>
     );
 }

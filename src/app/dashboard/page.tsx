@@ -1,51 +1,129 @@
-import Link from 'next/link';
 import db from '@/lib/db';
-import styles from './page.module.css';
-import { deleteTemplate } from '@/app/lib/actions';
+import styles from './overview.module.css';
 
 export const dynamic = 'force-dynamic';
 
-export default async function DashboardPage() {
-    const templates = await db.template.findMany({
-        orderBy: { createdAt: 'desc' },
+export default async function DashboardOverview() {
+    // Get stats
+    const [
+        totalInvoices,
+        activeInvoices,
+        archivedInvoices,
+        totalTemplates,
+        totalRsvps,
+        recentInvoices
+    ] = await Promise.all([
+        db.invoice.count(),
+        db.invoice.count({ where: { status: 'ACTIVE' } }),
+        db.invoice.count({ where: { status: 'ARCHIVED' } }),
+        db.template.count(),
+        db.rsvpSubmission.count(),
+        db.invoice.findMany({
+            take: 5,
+            orderBy: { createdAt: 'desc' },
+            include: { template: true }
+        })
+    ]);
+
+    // Calculate actual revenue from all invoices
+    const allInvoices = await db.invoice.findMany({
+        select: { agreedPrice: true }
     });
 
+    const totalRevenue = allInvoices.reduce((sum, inv) => sum + (inv.agreedPrice || 0), 0);
+
+    function formatIDR(amount: number): string {
+        if (amount >= 1000000) {
+            return `${(amount / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
+        }
+        if (amount >= 1000) {
+            return `${(amount / 1000).toFixed(0)}K`;
+        }
+        return amount.toString();
+    }
+
     return (
-        <div>
-            <div className={styles.header}>
-                <h1 className={styles.title}>Your Templates</h1>
-                <Link href="/dashboard/templates/new" className={styles.createButton}>
-                    + Create New Template
-                </Link>
+        <div className={styles.container}>
+            <h1 className={styles.title}>Overview</h1>
+
+            <div className={styles.statsGrid}>
+                <div className={styles.statCard}>
+                    <div className={styles.statIcon}>👥</div>
+                    <div className={styles.statContent}>
+                        <span className={styles.statValue}>{activeInvoices}</span>
+                        <span className={styles.statLabel}>Active Clients</span>
+                    </div>
+                </div>
+                <div className={styles.statCard}>
+                    <div className={styles.statIcon}>💰</div>
+                    <div className={styles.statContent}>
+                        <span className={styles.statValue}>IDR {formatIDR(totalRevenue)}</span>
+                        <span className={styles.statLabel}>Total Revenue</span>
+                    </div>
+                </div>
+                <div className={styles.statCard}>
+                    <div className={styles.statIcon}>📄</div>
+                    <div className={styles.statContent}>
+                        <span className={styles.statValue}>{totalTemplates}</span>
+                        <span className={styles.statLabel}>Templates</span>
+                    </div>
+                </div>
+                <div className={styles.statCard}>
+                    <div className={styles.statIcon}>📝</div>
+                    <div className={styles.statContent}>
+                        <span className={styles.statValue}>{totalRsvps}</span>
+                        <span className={styles.statLabel}>Total RSVPs</span>
+                    </div>
+                </div>
             </div>
 
-            <div className={styles.grid}>
-                {templates.length === 0 ? (
-                    <div className={styles.emptyState}>
-                        <p>No templates yet. Create your first one!</p>
+            <div className={styles.section}>
+                <h2>Summary</h2>
+                <div className={styles.summaryGrid}>
+                    <div className={styles.summaryItem}>
+                        <span className={styles.summaryLabel}>Total Invoices</span>
+                        <span className={styles.summaryValue}>{totalInvoices}</span>
                     </div>
+                    <div className={styles.summaryItem}>
+                        <span className={styles.summaryLabel}>Active</span>
+                        <span className={styles.summaryValueGreen}>{activeInvoices}</span>
+                    </div>
+                    <div className={styles.summaryItem}>
+                        <span className={styles.summaryLabel}>Archived</span>
+                        <span className={styles.summaryValueGray}>{archivedInvoices}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div className={styles.section}>
+                <h2>Recent Clients</h2>
+                {recentInvoices.length === 0 ? (
+                    <p className={styles.emptyState}>No clients yet</p>
                 ) : (
-                    templates.map((template: any) => (
-                        <div key={template.id} className={styles.card}>
-                            <div className={styles.cardPreview}>
-                                {/* Thumbnail would go here */}
-                                <div className={styles.placeholderThumbnail} />
-                            </div>
-                            <div className={styles.cardContent}>
-                                <h3>{template.name}</h3>
-                                <div className={styles.actions}>
-                                    <Link href={`/dashboard/templates/${template.id}`} className={styles.editLink}>Edit</Link>
-                                    <Link href={`/preview/${template.id}`} target="_blank" className={styles.previewLink}>Preview</Link>
-                                    <form action={async () => {
-                                        'use server';
-                                        await deleteTemplate(template.id);
-                                    }}>
-                                        <button className={styles.deleteButton}>Delete</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    ))
+                    <table className={styles.table}>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Subdomain</th>
+                                <th>Template</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {recentInvoices.map((inv) => (
+                                <tr key={inv.id}>
+                                    <td>{inv.customerName}</td>
+                                    <td><code>{inv.subdomain}</code></td>
+                                    <td>{inv.template.name}</td>
+                                    <td>
+                                        <span className={inv.status === 'ACTIVE' ? styles.badgeActive : styles.badgeArchived}>
+                                            {inv.status}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 )}
             </div>
         </div>
