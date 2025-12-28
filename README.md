@@ -6,9 +6,15 @@ A Next.js-based wedding invitation template management system with subdomain rou
 
 - 🎨 Beautiful, responsive wedding invitation templates
 - 📝 Admin dashboard for template management
+- 🛠️ **HTML Editor**: Full control over template code with live preview
+- 🖼️ **Thumbnail Upload**: Secure execution-proof image uploads
 - 🌐 Custom subdomain routing (e.g., `john-jane.yourdomain.com`)
 - 📋 Invoice & client management with archive functionality
-- 🔐 Authentication system
+- 🔐 **Enhanced Security**: 
+    - Hardened Authentication & Session Management
+    - Strict Input Validation (SQLi/XSS Prevention)
+    - Double-Extension RCE Protection
+    - Security Headers (HSTS, X-Frame-Options)
 
 ## Getting Started
 

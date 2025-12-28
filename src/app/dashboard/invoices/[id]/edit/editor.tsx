@@ -3,27 +3,35 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { updateInvoiceContent } from '@/app/lib/actions';
+import MediaManager from '@/components/MediaManager';
 import styles from './editor.module.css';
 
 // Dynamically import Monaco to avoid SSR issues
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
 
-type EditorMode = 'json' | 'html';
-
 export default function InvoiceEditor({ invoice, rootDomain }: { invoice: any, rootDomain: string }) {
-    const [mode, setMode] = useState<EditorMode>('json');
-    const [jsonContent, setJsonContent] = useState(invoice.templateContent || invoice.template.content);
-    const [htmlContent, setHtmlContent] = useState(invoice.template.htmlContent || getDefaultHtmlTemplate());
+    const [htmlContent, setHtmlContent] = useState(invoice.htmlContent || invoice.template.htmlContent || '');
     const [isSaving, setIsSaving] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
+    const [showMediaManager, setShowMediaManager] = useState(false);
+    const [toast, setToast] = useState<string | null>(null);
 
     const handleSave = async () => {
         setIsSaving(true);
-        // For invoices, we save the JSON content to templateContent
-        // HTML content is saved at template level, not invoice level
-        await updateInvoiceContent(invoice.id, jsonContent);
+        const res = await updateInvoiceContent(invoice.id, htmlContent);
+        if (res.success) {
+            setToast('Changes saved successfully!');
+            setTimeout(() => setToast(null), 3000);
+        }
         setIsSaving(false);
         setRefreshKey(prev => prev + 1);
+    };
+
+    const handleMediaSelect = (url: string) => {
+        navigator.clipboard.writeText(url);
+        setToast(`Copied URL: ${url}`);
+        setTimeout(() => setToast(null), 3000);
+        setShowMediaManager(false);
     };
 
     const previewUrl = invoice.subdomainMode === 'BASIC'
@@ -32,73 +40,73 @@ export default function InvoiceEditor({ invoice, rootDomain }: { invoice: any, r
 
     return (
         <div className={styles.container}>
+            {showMediaManager && (
+                <MediaManager
+                    onSelect={handleMediaSelect}
+                    onClose={() => setShowMediaManager(false)}
+                />
+            )}
+
+            {toast && (
+                <div style={{
+                    position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)',
+                    background: '#4caf50', color: 'white', padding: '10px 20px', borderRadius: '50px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)', zIndex: 10000, fontWeight: 'bold'
+                }}>
+                    ✅ {toast}
+                </div>
+            )}
+
             <header className={styles.header}>
                 <div>
-                    <h1>Editing: {invoice.customerName}</h1>
+                    <h1>Editing Client: {invoice.customerName}</h1>
                     <p className={styles.subdomain}>{invoice.subdomain}.{rootDomain}</p>
                 </div>
-                <button className={styles.saveButton} onClick={handleSave} disabled={isSaving}>
-                    {isSaving ? 'Saving...' : 'Save & Update'}
-                </button>
+                <div className={styles.headerActions}>
+                    <button
+                        className={styles.mediaButton}
+                        onClick={() => setShowMediaManager(true)}
+                        style={{
+                            background: '#444',
+                            marginRight: '1rem',
+                            border: '1px solid #666',
+                            color: 'white',
+                            padding: '0.5rem 1rem',
+                            borderRadius: '4px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        🖼️ Media Manager
+                    </button>
+                    <button className={styles.saveButton} onClick={handleSave} disabled={isSaving}>
+                        {isSaving ? 'Saving...' : 'Save & Update'}
+                    </button>
+                </div>
             </header>
+
             <div className={styles.workspace}>
                 <div className={styles.editorPane}>
-                    {/* Tab buttons */}
                     <div className={styles.tabs}>
-                        <button
-                            className={`${styles.tab} ${mode === 'json' ? styles.tabActive : ''}`}
-                            onClick={() => setMode('json')}
-                        >
-                            📋 JSON Editor
-                        </button>
-                        <button
-                            className={`${styles.tab} ${mode === 'html' ? styles.tabActive : ''}`}
-                            onClick={() => setMode('html')}
-                        >
+                        <button className={`${styles.tab} ${styles.tabActive}`}>
                             🎨 HTML Editor
                         </button>
                     </div>
 
-                    {/* Monaco Editor */}
                     <div className={styles.monacoContainer}>
-                        {mode === 'json' ? (
-                            <MonacoEditor
-                                height="100%"
-                                language="json"
-                                theme="vs-dark"
-                                value={jsonContent}
-                                onChange={(value) => setJsonContent(value || '')}
-                                options={{
-                                    minimap: { enabled: false },
-                                    fontSize: 14,
-                                    wordWrap: 'on',
-                                    automaticLayout: true,
-                                    formatOnPaste: true,
-                                    formatOnType: true,
-                                }}
-                            />
-                        ) : (
-                            <MonacoEditor
-                                height="100%"
-                                language="html"
-                                theme="vs-dark"
-                                value={htmlContent}
-                                onChange={(value) => setHtmlContent(value || '')}
-                                options={{
-                                    minimap: { enabled: false },
-                                    fontSize: 14,
-                                    wordWrap: 'on',
-                                    automaticLayout: true,
-                                }}
-                            />
-                        )}
+                        <MonacoEditor
+                            height="100%"
+                            language="html"
+                            theme="vs-dark"
+                            value={htmlContent}
+                            onChange={(value) => setHtmlContent(value || '')}
+                            options={{
+                                minimap: { enabled: false },
+                                fontSize: 14,
+                                wordWrap: 'on',
+                                automaticLayout: true,
+                            }}
+                        />
                     </div>
-
-                    {mode === 'html' && (
-                        <p className={styles.hint}>
-                            📌 HTML mode shows the template's HTML content (read-only for invoices). Edit at template level.
-                        </p>
-                    )}
                 </div>
                 <div className={styles.previewPane}>
                     <h2>Live Preview</h2>
@@ -111,47 +119,4 @@ export default function InvoiceEditor({ invoice, rootDomain }: { invoice: any, r
             </div>
         </div>
     );
-}
-
-function getDefaultHtmlTemplate(): string {
-    return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wedding Invitation</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Georgia', serif;
-            background: linear-gradient(135deg, #1a0a0a 0%, #2d1515 100%);
-            color: #fff;
-            min-height: 100vh;
-        }
-        .hero {
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
-        .hero h1 {
-            font-size: 3rem;
-            color: #d4a68d;
-            margin-bottom: 1rem;
-        }
-        .hero p {
-            font-size: 1.25rem;
-            color: #c9a892;
-        }
-    </style>
-</head>
-<body>
-    <section class="hero">
-        <h1>John & Jane</h1>
-        <p>We're getting married!</p>
-    </section>
-</body>
-</html>`;
 }

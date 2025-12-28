@@ -45,3 +45,6 @@ yarn-error.log*
 
 # notes
 noted.txt
+
+# uploads
+/public/uploads

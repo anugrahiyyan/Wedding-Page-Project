@@ -1,7 +1,7 @@
 import db from '@/lib/db';
 import InvoiceClient from './InvoiceClient';
 
-export const dynamic = 'force-dynamic';
+
 
 export default async function InvoicesPage() {
     const invoices = await db.invoice.findMany({

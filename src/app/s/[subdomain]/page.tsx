@@ -4,7 +4,7 @@ import TemplateRenderer from '@/components/TemplateRenderer';
 
 import { Metadata } from 'next';
 
-export const dynamic = 'force-dynamic';
+
 
 export async function generateMetadata({ params }: { params: Promise<{ subdomain: string }> }): Promise<Metadata> {
     const resolvedParams = await params;
@@ -67,11 +67,12 @@ export default async function SubdomainPage({ params }: { params: Promise<{ subd
         notFound();
     }
 
-    // Use copied templateContent if available, otherwise fall back to original template
-    let content;
+    // Use custom invoice HTML if available, otherwise fall back to template
+    const htmlContent = invoice.htmlContent || invoice.template.htmlContent;
+    let content = {};
     try {
         const contentSource = invoice.templateContent || invoice.template.content;
-        content = JSON.parse(contentSource);
+        if (contentSource) content = JSON.parse(contentSource);
     } catch (e) {
         content = {};
     }
@@ -86,6 +87,7 @@ export default async function SubdomainPage({ params }: { params: Promise<{ subd
     return (
         <TemplateRenderer
             content={content}
+            htmlContent={htmlContent}
             subdomain={resolvedParams.subdomain}
             initialWishes={initialWishes}
         />

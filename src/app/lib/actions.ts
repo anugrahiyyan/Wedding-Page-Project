@@ -70,59 +70,166 @@ export async function createTemplate(prevState: string | undefined, formData: Fo
 
     const { name, tierId, price, description } = validatedFields.data
 
-    const defaultContent = JSON.stringify({
-        hero: {
-            title: "Welcome to Our Wedding",
-            subtitle: "Jane & John • Dec 25, 2025",
-            backgroundImage: "https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
-        },
-        countdown: {
-            targetDate: "2025-12-25T16:00:00",
-            message: "Counting down the days!"
-        },
-        story: {
-            title: "Our Story",
-            text: "We met at a coffee shop on a rainy Tuesday. One cup of latte later, we knew it was forever. Join us as we celebrate our love."
-        },
-        gallery: {
-            title: "Our Moments",
-            images: [
-                "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?auto=format&fit=crop&w=800&q=80",
-                "https://images.unsplash.com/photo-1519225421980-715cb0202128?auto=format&fit=crop&w=800&q=80",
-                "https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=800&q=80"
-            ]
-        },
-        event: {
-            date: "December 25, 2025",
-            time: "4:00 PM",
-            location: "The Grand Hotel, New York",
-            address: "123 Broadway, NY 10001",
-            mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1422937950147!2d-73.98731968459391!3d40.75889497932681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480299%3A0x55194ec5a1ae072e!2sTimes+Square!5e0!3m2!1sen!2sus!4v1560412335448!5m2!1sen!2sus"
-        },
-        rsvp: {
-            email: "rsvp@example.com",
-            deadline: "December 1, 2025",
-            showAllergyField: true
-        },
-        gifts: {
-            show: true,
-            items: [
-                { type: "Bank", name: "BCA", number: "1234567890", accountName: "Jane Doe" },
-                { type: "E-Wallet", name: "OVO", number: "08123456789", accountName: "John Doe" }
-            ]
-        },
-        music: {
-            youtubeId: "jfKfPfyJRdk",
-            autoPlay: true
+    // Default HTML Template with Injected RSVP Logic
+    const defaultHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Wedding of Jane & John</title>
+    <style>
+        /* BASE STYLES */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #fdf6f0;
+            color: #4a4a4a;
+            line-height: 1.6;
         }
-    }, null, 2)
+        section { padding: 4rem 2rem; max-width: 1000px; margin: 0 auto; text-align: center; }
+        
+        /* HERO */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1950&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+        }
+        .hero h1 { font-size: 3.5rem; margin-bottom: 1rem; font-family: 'Great Vibes', cursive; }
+        .hero p { font-size: 1.5rem; font-weight: 300; }
+
+        /* RSVP FORM */
+        .rsvp-container {
+            background: white;
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-top: 3rem;
+        }
+        .form-group { margin-bottom: 1.5rem; text-align: left; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+        input, select, textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        button[type="submit"] {
+            background: #d4a68d;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+        }
+        button[type="submit"]:hover { background: #c08e72; }
+        #rsvp-message { margin-top: 1rem; font-weight: bold; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+    <!-- Font for elegant titles -->
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- HERO SECTION -->
+    <header class="hero">
+        <h1>Jane & John</h1>
+        <p>Are getting married!</p>
+        <p>December 25, 2025</p>
+    </header>
+
+    <!-- STORY SECTION -->
+    <section>
+        <h2>Our Story</h2>
+        <p>We met at a coffee shop on a rainy Tuesday. One cup of latte later, we knew it was forever. Join us as we celebrate our love.</p>
+    </section>
+
+    <!-- RSVP SECTION (CRITICAL: DO NOT REMOVE ID="rsvp-form") -->
+    <section>
+        <div class="rsvp-container">
+            <h2>RSVP</h2>
+            <p>Please confirm your attendance by Dec 1, 2025</p>
+            
+            <form id="rsvp-form" method="POST" onsubmit="return typeof window.submitRsvpForm === 'function' ? window.submitRsvpForm(event) : true">
+                <!-- Hidden Subdomain Field (Filled automatically by TemplateRenderer) -->
+                <input type="hidden" name="subdomain" id="subdomain-field">
+                
+                <div class="form-group">
+                    <label>Your Name</label>
+                    <input type="text" name="guestName" required placeholder="Enter full name">
+                </div>
+                
+                <div class="form-group">
+                    <label>Email (Optional)</label>
+                    <input type="email" name="email" placeholder="For updates">
+                </div>
+
+                <div class="form-group">
+                    <label>Will you attend?</label>
+                    <select name="attending">
+                        <option value="true">Yes, I will be there!</option>
+                        <option value="false">Sorry, I can't come</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Message for the couple</label>
+                    <textarea name="comment" rows="3" placeholder="Write your wishes..."></textarea>
+                </div>
+
+                <button type="submit" id="submit-btn">Send Confirmation</button>
+                <div id="rsvp-message"></div>
+            </form>
+        </div>
+    </section>
+
+    <!-- SCRIPT TO HANDLE RSVP SUBMISSION -->
+    <script>
+        (function() {
+            // Light-weight fallback to fill subdomain if React hasn't injected it yet
+            function initRSVP() {
+                const hiddenField = document.getElementById('subdomain-field');
+                if (hiddenField && !hiddenField.value) {
+                    const pathParts = window.location.pathname.split('/').filter(Boolean);
+                    const sIndex = pathParts.indexOf('s');
+                    if (sIndex !== -1 && pathParts[sIndex + 1]) {
+                        hiddenField.value = pathParts[sIndex + 1];
+                    } else {
+                        const hostParts = window.location.hostname.split('.');
+                        if (hostParts.length >= 2 && hostParts[0] !== 'www' && hostParts[0] !== 'localhost') {
+                            hiddenField.value = hostParts[0];
+                        }
+                    }
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initRSVP);
+            } else {
+                initRSVP();
+            }
+        })();
+    </script>
+</body>
+</html>`;
 
     let template;
     try {
         template = await db.template.create({
             data: {
                 name,
-                content: defaultContent,
+                content: '{}', // Deprecated JSON content
+                htmlContent: defaultHtml,
                 tierId: tierId || null,
                 price: price || null,
                 description: description || null,
@@ -181,8 +288,12 @@ export async function createInvoice(formData: FormData) {
 
     const { customerName, templateId, subdomain, subdomainMode, agreedPrice } = validatedFields.data
 
-    // Generate simple access token
-    const accessToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    // Generate 6-digit numeric PIN
+    const accessToken = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Get template HTML to initialize invoice HTML
+    const template = await db.template.findUnique({ where: { id: templateId } });
+    const htmlContent = template?.htmlContent || '';
 
     try {
         await db.invoice.create({
@@ -193,6 +304,7 @@ export async function createInvoice(formData: FormData) {
                 subdomainMode,
                 agreedPrice: agreedPrice || 0,
                 accessToken,
+                htmlContent,
                 status: 'ACTIVE'
             },
         })
@@ -243,7 +355,7 @@ export async function updateInvoiceContent(id: string, content: string) {
     try {
         await db.invoice.update({
             where: { id },
-            data: { templateContent: content }
+            data: { htmlContent: content }
         })
         revalidatePath('/dashboard')
         revalidatePath(`/dashboard/invoices/${id}/edit`)
@@ -256,10 +368,16 @@ export async function updateInvoiceContent(id: string, content: string) {
 
 export async function deleteInvoice(id: string) {
     try {
+        // Manually cascade delete RSVPs first (since schema might lack onDelete: Cascade)
+        await db.rsvpSubmission.deleteMany({
+            where: { invoiceId: id }
+        });
+
         await db.invoice.delete({ where: { id } })
         revalidatePath('/dashboard')
         return { success: true }
     } catch (error) {
+        console.error('Failed to delete invoice:', error);
         return { success: false, error: 'Failed to delete invoice' }
     }
 }

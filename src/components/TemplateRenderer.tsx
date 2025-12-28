@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import styles from './TemplateRenderer.module.css';
 
 interface WishMessage {
@@ -14,13 +14,15 @@ export default function TemplateRenderer({
     showCheckout = false,
     templateName = 'Template',
     subdomain = '',
-    initialWishes = []
+    initialWishes = [],
+    htmlContent = null
 }: {
     content: any,
     showCheckout?: boolean,
     templateName?: string,
     subdomain?: string,
-    initialWishes?: WishMessage[]
+    initialWishes?: WishMessage[],
+    htmlContent?: string | null
 }) {
     const [isClient, setIsClient] = useState(false);
     const [wishes, setWishes] = useState<WishMessage[]>(initialWishes);
@@ -56,7 +58,150 @@ export default function TemplateRenderer({
         showNextBubble();
     }, [bubbleIndex, wishes]);
 
-    // --- State for Countdown ---
+    // Expose function for HTML templates to trigger bubbles
+    useEffect(() => {
+        // Helper to trigger bubble
+        const triggerBubble = (name: string, comment: string) => {
+            if (comment) {
+                const newWish = {
+                    guestName: name,
+                    comment,
+                    createdAt: new Date()
+                };
+                setWishes(prev => [newWish, ...prev]);
+
+                // FORCE SHOW the new bubble immediately for feedback
+                setCurrentBubble(newWish);
+                // Resume cycle after this one finishes (2.5s + 0.5s padding)
+            }
+        };
+
+        (window as any).addRsvpBubble = triggerBubble;
+
+        // --- NEW: Global RSVP Handler (Robust) ---
+        // We expose the handler to window so the HTML can call it directly via onsubmit="..."
+        // This bypasses all React hydration/listener attachment race conditions.
+        (window as any).submitRsvpForm = async (e: Event) => {
+            e.preventDefault();
+            console.log('[TemplateRenderer] Global submitRsvpForm called');
+
+            const form = e.target as HTMLFormElement;
+            const hiddenField = form.querySelector('#subdomain-field') as HTMLInputElement;
+            const msg = form.querySelector('#rsvp-message');
+            const btn = form.querySelector('#submit-btn') as HTMLButtonElement;
+
+            // Fallback subdomain detection if hidden field is empty
+            if (!hiddenField?.value) {
+                const pathParts = window.location.pathname.split('/').filter(Boolean);
+                const sIndex = pathParts.indexOf('s');
+                if (sIndex !== -1 && pathParts[sIndex + 1]) {
+                    hiddenField.value = pathParts[sIndex + 1];
+                }
+            }
+
+            if (!hiddenField?.value && !window.location.pathname.includes('preview')) {
+                alert('Error: Could not detect subdomain.');
+                return false;
+            }
+
+            // Preview Mode
+            if (window.location.pathname.includes('preview')) {
+                if (msg) msg.textContent = 'Preview Mode: RSVP received.';
+                const fd = new FormData(form);
+                triggerBubble(fd.get('guestName') as string, fd.get('comment') as string);
+                return false;
+            }
+
+            // Real Submission
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Sending...';
+            }
+            if (msg) msg.textContent = '';
+
+            const formData = new FormData(form);
+            const payload = {
+                subdomain: hiddenField.value,
+                guestName: formData.get('guestName'),
+                email: formData.get('email'),
+                attending: formData.get('attending') === 'true',
+                comment: formData.get('comment')
+            };
+
+            try {
+                const res = await fetch('/api/rsvp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    if (msg) {
+                        msg.textContent = 'Thank you! Your RSVP has been sent. 🎉';
+                        msg.className = 'success';
+                    }
+                    form.reset();
+                    // Restore subdomain after reset
+                    hiddenField.value = payload.subdomain;
+                    triggerBubble(payload.guestName as string, payload.comment as string);
+                    fireConfetti(); // Trigger celebration!
+                } else if (msg) {
+                    msg.textContent = 'Error: ' + (data.error || 'Failed to send');
+                    msg.className = 'error';
+                }
+            } catch (error) {
+                console.error(error);
+                if (msg) {
+                    msg.textContent = 'Network error. Please try again.';
+                    msg.className = 'error';
+                }
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Send Confirmation';
+                }
+            }
+            return false;
+        };
+
+        return () => {
+            delete (window as any).addRsvpBubble;
+            delete (window as any).submitRsvpForm;
+        };
+    }, [subdomain]);
+
+    // --- Confetti Effect Helper ---
+    const fireConfetti = () => {
+        if (typeof document === 'undefined') return;
+        const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+        for (let i = 0; i < 100; i++) {
+            const p = document.createElement('div');
+            p.style.position = 'fixed';
+            p.style.width = '10px';
+            p.style.height = '10px';
+            p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            p.style.left = '50%';
+            p.style.top = '50%';
+            p.style.zIndex = '9999';
+            p.style.pointerEvents = 'none';
+            p.style.borderRadius = '50%';
+            document.body.appendChild(p);
+
+            const angle = Math.random() * Math.PI * 2;
+            const velocity = 5 + Math.random() * 5;
+            const tx = Math.cos(angle) * 300 * Math.random();
+            const ty = Math.sin(angle) * 300 * Math.random();
+
+            p.animate([
+                { transform: 'translate(0,0) scale(1)', opacity: 1 },
+                { transform: `translate(${tx}px, ${ty}px) scale(0)`, opacity: 0 }
+            ], {
+                duration: 1000 + Math.random() * 1000,
+                easing: 'cubic-bezier(0, .9, .57, 1)',
+            }).onfinish = () => p.remove();
+        }
+    };
     const [timeLeft, setTimeLeft] = useState<{ days: number, hours: number, minutes: number, seconds: number } | null>(null);
 
     useEffect(() => {
@@ -132,11 +277,44 @@ export default function TemplateRenderer({
             setRsvpStatus('error');
             setRsvpMessage('Network error. Please try again.');
         }
-    };
+    }
+
+
+
+    // --- Confetti Effect Helper ---
+
+
+
+
+    const wrapperRef = useRef<HTMLDivElement>(null);
 
     if (!isClient) return <div className={styles.wrapper} style={{ minHeight: '100vh' }}></div>;
 
     const waLink = `https://wa.me/6281230826731?text=Hi,%20saya%20ingin%20pesan%20template:%20${encodeURIComponent(templateName)}`;
+
+    // If HTML content is present, render it directly
+    if (htmlContent) {
+        // Inject subdomain into any element with id="subdomain-field"
+        const injectedHtml = htmlContent.replace(
+            /id\s*=\s*["']subdomain-field["']/i,
+            (match) => `${match} value="${subdomain}"`
+        );
+        return (
+            <div ref={wrapperRef} className={styles.wrapper}>
+                <div dangerouslySetInnerHTML={{ __html: injectedHtml }} />
+
+                {/* Broadcast Bubbles - Bottom Right */}
+                {currentBubble && (
+                    <div className={styles.broadcastContainer}>
+                        <div className={styles.broadcastBubble}>
+                            <strong>{currentBubble.guestName}</strong>
+                            <p>{currentBubble.comment}</p>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    }
 
     const PreviewNavbar = () => (
         <>
@@ -261,7 +439,7 @@ export default function TemplateRenderer({
     );
 
     return (
-        <div className={styles.wrapper}>
+        <div className={styles.wrapper} ref={wrapperRef}>
             {showCheckout && <PreviewNavbar />}
 
             {/* Broadcast Bubbles - Bottom Right */}

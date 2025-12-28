@@ -1,7 +1,7 @@
 import db from '@/lib/db';
 import styles from './overview.module.css';
 
-export const dynamic = 'force-dynamic';
+
 
 export default async function DashboardOverview() {
     // Get stats

@@ -1,8 +1,9 @@
 import db from '@/lib/db';
 import { notFound } from 'next/navigation';
 import styles from './page.module.css';
+import RsvpPinForm from './RsvpPinForm';
 
-export const dynamic = 'force-dynamic';
+
 
 export default async function RsvpPage({
     params,
@@ -35,19 +36,7 @@ export default async function RsvpPage({
                 <div className={styles.pinCard}>
                     <h1>🎊 Konfirmasi Tamu</h1>
                     <p>Masukkan PIN 6 digit untuk melihat daftar tamu</p>
-                    <form method="GET" className={styles.pinForm}>
-                        <input
-                            type="text"
-                            name="token"
-                            placeholder="• • • • • •"
-                            maxLength={6}
-                            pattern="[0-9]{6}"
-                            className={styles.pinInput}
-                            autoComplete="off"
-                            required
-                        />
-                        <button type="submit" className={styles.pinButton}>Lihat Tamu</button>
-                    </form>
+                    <RsvpPinForm />
                     <p className={styles.hint}>PIN diberikan oleh admin undangan Anda</p>
                 </div>
             </div>

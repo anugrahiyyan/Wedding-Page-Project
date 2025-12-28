@@ -3,41 +3,90 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { updateTemplate } from '@/app/lib/actions';
+import MediaManager from '@/components/MediaManager';
 import styles from './editor.module.css';
 
 // Dynamically import Monaco to avoid SSR issues
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
 
-type EditorMode = 'json' | 'html';
-
 export default function Editor({ template }: { template: any }) {
-    const [mode, setMode] = useState<EditorMode>('json');
-    const [jsonContent, setJsonContent] = useState(template.content);
+    // Default to HTML mode only
     const [htmlContent, setHtmlContent] = useState(template.htmlContent || getDefaultHtmlTemplate());
     const [thumbnail, setThumbnail] = useState(template.thumbnail || '');
     const [isSaving, setIsSaving] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
+    const [showMediaManager, setShowMediaManager] = useState(false);
+
+    const [mediaTarget, setMediaTarget] = useState<'clipboard' | 'thumbnail'>('clipboard');
 
     const handleSave = async () => {
         setIsSaving(true);
-        // Save both JSON and HTML content
-        await updateTemplate(template.id, jsonContent, thumbnail, htmlContent);
+        // Save only HTML content (jsonContent is now legacy/unused)
+        await updateTemplate(template.id, '{}', thumbnail, htmlContent);
         setIsSaving(false);
         setRefreshKey(prev => prev + 1);
     };
 
+    const [toast, setToast] = useState<string | null>(null);
+
+    const handleMediaSelect = (url: string) => {
+        if (mediaTarget === 'thumbnail') {
+            setThumbnail(url);
+            setShowMediaManager(false);
+        } else {
+            navigator.clipboard.writeText(url);
+            setToast(`Copied: ${url}`);
+            setTimeout(() => setToast(null), 3000);
+            setShowMediaManager(false);
+        }
+    };
+
     return (
         <div className={styles.container}>
+            {showMediaManager && (
+                <MediaManager
+                    onSelect={handleMediaSelect}
+                    onClose={() => setShowMediaManager(false)}
+                />
+            )}
+
+            {toast && (
+                <div style={{
+                    position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)',
+                    background: '#4caf50', color: 'white', padding: '10px 20px', borderRadius: '50px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)', zIndex: 10000, fontWeight: 'bold',
+                    animation: 'fadeIn 0.3s ease'
+                }}>
+                    ✅ {toast}
+                </div>
+            )}
+
             <header className={styles.header}>
                 <h1>Editing: {template.name}</h1>
                 <div className={styles.headerActions}>
-                    <input
-                        type="url"
-                        placeholder="Thumbnail URL (for homepage card)"
-                        value={thumbnail}
-                        onChange={(e) => setThumbnail(e.target.value)}
-                        className={styles.thumbnailInput}
-                    />
+                    <button
+                        className={styles.mediaButton}
+                        onClick={() => { setMediaTarget('clipboard'); setShowMediaManager(true); }}
+                        style={{ background: '#444', marginRight: '1rem', border: '1px solid #666', color: 'white', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer' }}
+                    >
+                        🖼️ Media Manager
+                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <input
+                            type="url"
+                            placeholder="Thumbnail URL"
+                            value={thumbnail}
+                            onChange={(e) => setThumbnail(e.target.value)}
+                            className={styles.thumbnailInput}
+                            style={{ width: '300px' }}
+                        />
+                        <button
+                            onClick={() => { setMediaTarget('thumbnail'); setShowMediaManager(true); }}
+                            style={{ background: '#2d3748', border: '1px solid #4a5568', color: 'white', padding: '0 1rem', borderRadius: '4px', cursor: 'pointer' }}
+                        >
+                            Upload
+                        </button>
+                    </div>
                     <button className={styles.saveButton} onClick={handleSave} disabled={isSaving}>
                         {isSaving ? 'Saving...' : 'Save & Refresh Preview'}
                     </button>
@@ -46,65 +95,24 @@ export default function Editor({ template }: { template: any }) {
 
             <div className={styles.workspace}>
                 <div className={styles.editorPane}>
-                    {/* Tab buttons */}
-                    <div className={styles.tabs}>
-                        <button
-                            className={`${styles.tab} ${mode === 'json' ? styles.tabActive : ''}`}
-                            onClick={() => setMode('json')}
-                        >
-                            📋 JSON Editor
-                        </button>
-                        <button
-                            className={`${styles.tab} ${mode === 'html' ? styles.tabActive : ''}`}
-                            onClick={() => setMode('html')}
-                        >
-                            🎨 HTML Editor
-                        </button>
-                    </div>
-
-                    {/* Monaco Editor */}
                     <div className={styles.monacoContainer}>
-                        {mode === 'json' ? (
-                            <MonacoEditor
-                                height="100%"
-                                language="json"
-                                theme="vs-dark"
-                                value={jsonContent}
-                                onChange={(value) => setJsonContent(value || '')}
-                                options={{
-                                    minimap: { enabled: false },
-                                    fontSize: 14,
-                                    wordWrap: 'on',
-                                    automaticLayout: true,
-                                    formatOnPaste: true,
-                                    formatOnType: true,
-                                }}
-                            />
-                        ) : (
-                            <MonacoEditor
-                                height="100%"
-                                language="html"
-                                theme="vs-dark"
-                                value={htmlContent}
-                                onChange={(value) => setHtmlContent(value || '')}
-                                options={{
-                                    minimap: { enabled: false },
-                                    fontSize: 14,
-                                    wordWrap: 'on',
-                                    automaticLayout: true,
-                                }}
-                            />
-                        )}
+                        <MonacoEditor
+                            height="100%"
+                            language="html"
+                            theme="vs-dark"
+                            value={htmlContent}
+                            onChange={(value) => setHtmlContent(value || '')}
+                            options={{
+                                minimap: { enabled: false },
+                                fontSize: 14,
+                                wordWrap: 'on',
+                                automaticLayout: true,
+                            }}
+                        />
                     </div>
-
-                    {mode === 'html' && (
-                        <p className={styles.hint}>
-                            📌 HTML mode is for custom template development. Use CSS/JS inline or via style/script tags.
-                        </p>
-                    )}
                 </div>
                 <div className={styles.previewPane}>
-                    <h2>Live Preview (Updates on Save)</h2>
+                    <h2>Live Preview</h2>
                     <iframe
                         src={`/preview/${template.id}`}
                         className={styles.iframe}
@@ -117,47 +125,6 @@ export default function Editor({ template }: { template: any }) {
 }
 
 function getDefaultHtmlTemplate(): string {
-    return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wedding Invitation</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Georgia', serif;
-            background: linear-gradient(135deg, #1a0a0a 0%, #2d1515 100%);
-            color: #fff;
-            min-height: 100vh;
-        }
-        .hero {
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            background-size: cover;
-            background-position: center;
-        }
-        .hero h1 {
-            font-size: 3rem;
-            color: #d4a68d;
-            margin-bottom: 1rem;
-        }
-        .hero p {
-            font-size: 1.25rem;
-            color: #c9a892;
-        }
-    </style>
-</head>
-<body>
-    <section class="hero">
-        <h1>John & Jane</h1>
-        <p>We're getting married!</p>
-        <p>December 25, 2025</p>
-    </section>
-</body>
-</html>`;
+    // Fallback if DB is empty, though new templates should use the Action default
+    return `<!DOCTYPE html>...`;
 }

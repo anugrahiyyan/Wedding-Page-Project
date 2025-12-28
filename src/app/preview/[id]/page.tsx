@@ -2,7 +2,7 @@ import db from '@/lib/db';
 import { notFound } from 'next/navigation';
 import TemplateRenderer from '@/components/TemplateRenderer';
 
-export const dynamic = 'force-dynamic';
+
 
 export default async function PreviewPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = await params;
@@ -23,6 +23,11 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
     }
 
     return (
-        <TemplateRenderer content={content} showCheckout={true} templateName={template.name} />
+        <TemplateRenderer
+            content={content}
+            htmlContent={template.htmlContent}
+            showCheckout={true}
+            templateName={template.name}
+        />
     );
 }

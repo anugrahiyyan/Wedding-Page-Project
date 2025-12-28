@@ -51,7 +51,8 @@ model Invoice {
   subdomain       String   @unique
   templateId      String
   template        Template @relation(fields: [templateId], references: [id])
-  templateContent String?  // Copied template JSON for this client
+  templateContent String?  // Copied template JSON for this client (legacy)
+  htmlContent     String?  // Custom HTML content for this specific invoice
   accessToken     String   @default(cuid()) // 6-digit token for RSVP access
   status          String   @default("ACTIVE")
   subdomainMode   String   @default("VIP")  // VIP = subdomain, BASIC = /s/path

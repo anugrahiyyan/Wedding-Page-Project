@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import styles from './page.module.css';
 import { deleteTemplate } from '@/app/lib/actions';
@@ -66,14 +67,20 @@ export default function TemplatesClient({ templates }: TemplatesClientProps) {
                 ) : (
                     templates.map((template) => (
                         <div key={template.id} className={styles.card}>
+
+
                             <div className={styles.cardPreview}>
                                 {template.thumbnail ? (
-                                    <img
-                                        src={template.thumbnail}
-                                        alt={template.name}
-                                        className={styles.thumbnail}
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                    />
+                                    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                                        <Image
+                                            src={template.thumbnail}
+                                            alt={template.name}
+                                            fill
+                                            className={styles.thumbnail}
+                                            style={{ objectFit: 'cover' }}
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                        />
+                                    </div>
                                 ) : (
                                     <div className={styles.placeholderThumbnail} />
                                 )}

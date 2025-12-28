@@ -330,6 +330,13 @@ export default function InvoiceClient({ invoices, templates, rootDomain }: Invoi
                                                             <a href={`/dashboard/invoices/${inv.id}/edit`} className={styles.dropdownItem}>
                                                                 ✏️ Edit Template
                                                             </a>
+                                                            <a
+                                                                href={url + '/rsvp?token=' + inv.accessToken}
+                                                                target="_blank"
+                                                                className={styles.dropdownItem}
+                                                            >
+                                                                📋 View RSVPs
+                                                            </a>
                                                             <button
                                                                 className={styles.dropdownItem}
                                                                 onClick={(e) => {
