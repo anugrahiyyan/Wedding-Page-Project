@@ -37,9 +37,14 @@ function formatIDR(amount: number): string {
     return amount.toString();
 }
 
+import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
+
 export default function InvoiceClient({ invoices, templates, rootDomain }: InvoiceClientProps) {
     const [showModal, setShowModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -82,8 +87,32 @@ export default function InvoiceClient({ invoices, templates, rootDomain }: Invoi
         setOpenDropdown(null);
     };
 
+    const confirmDelete = (id: string) => {
+        setItemToDelete(id);
+        setShowDeleteModal(true);
+        setOpenDropdown(null);
+    };
+
+    const handleDelete = async () => {
+        if (!itemToDelete) return;
+        setIsDeleting(true);
+        await deleteInvoice(itemToDelete);
+        setIsDeleting(false);
+        setShowDeleteModal(false);
+        setItemToDelete(null);
+    };
+
     return (
         <div className={styles.container}>
+            <DeleteConfirmationModal
+                isOpen={showDeleteModal}
+                title="Delete Invoice"
+                message="Are you sure you want to delete this invoice? This action cannot be undone."
+                onConfirm={handleDelete}
+                onCancel={() => setShowDeleteModal(false)}
+                isDeleting={isDeleting}
+            />
+
             <header className={styles.header}>
                 <div>
                     <h1 className={styles.title}>Invoice Manager</h1>
@@ -94,7 +123,7 @@ export default function InvoiceClient({ invoices, templates, rootDomain }: Invoi
                 </button>
             </header>
 
-            {/* Stats */}
+            {/* ... [Stats Row remains same] ... */}
             <div className={styles.statsRow}>
                 <div className={styles.statItem}>
                     <span className={styles.statValue}>{invoices.length}</span>
@@ -114,7 +143,7 @@ export default function InvoiceClient({ invoices, templates, rootDomain }: Invoi
                 </div>
             </div>
 
-            {/* Create Modal */}
+            {/* Create Modal - Unchanged */}
             {showModal && (
                 <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
                     <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -175,7 +204,7 @@ export default function InvoiceClient({ invoices, templates, rootDomain }: Invoi
                 </div>
             )}
 
-            {/* Edit Invoice Modal */}
+            {/* Edit Invoice Modal - Unchanged */}
             {showEditModal && editingInvoice && (
                 <div className={styles.modalOverlay} onClick={() => setShowEditModal(false)}>
                     <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -326,16 +355,16 @@ export default function InvoiceClient({ invoices, templates, rootDomain }: Invoi
                                                                     📦 Archive
                                                                 </button>
                                                             </form>
-                                                            <form action={async () => {
-                                                                if (confirm('Delete this invoice?')) {
-                                                                    await deleteInvoice(inv.id);
-                                                                    setOpenDropdown(null);
-                                                                }
-                                                            }}>
-                                                                <button type="submit" className={styles.dropdownItemDanger}>
-                                                                    🗑️ Delete
-                                                                </button>
-                                                            </form>
+                                                            <button
+                                                                className={styles.dropdownItemDanger}
+                                                                onClick={(e) => {
+                                                                    e.preventDefault();
+                                                                    e.stopPropagation();
+                                                                    confirmDelete(inv.id);
+                                                                }}
+                                                            >
+                                                                🗑️ Delete
+                                                            </button>
                                                         </div>
                                                     )}
                                                 </div>

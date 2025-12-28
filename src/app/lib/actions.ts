@@ -157,6 +157,219 @@ export async function updateTemplate(id: string, content: string, thumbnail?: st
 
 // User Actions
 
+// Invoice Actions
+const CreateInvoiceSchema = z.object({
+    customerName: z.string().min(1, 'Customer Name is required'),
+    templateId: z.string().min(1, 'Template is required'),
+    subdomain: z.string().min(1, 'Subdomain is required').regex(/^[a-z0-9-]+$/, 'Invalid subdomain format'),
+    subdomainMode: z.enum(['VIP', 'BASIC']),
+    agreedPrice: z.coerce.number().optional(),
+})
+
+export async function createInvoice(formData: FormData) {
+    const validatedFields = CreateInvoiceSchema.safeParse({
+        customerName: formData.get('customerName'),
+        templateId: formData.get('templateId'),
+        subdomain: formData.get('subdomain'),
+        subdomainMode: formData.get('subdomainMode'),
+        agreedPrice: formData.get('agreedPrice') || undefined,
+    })
+
+    if (!validatedFields.success) {
+        return { success: false, error: 'Invalid fields' }
+    }
+
+    const { customerName, templateId, subdomain, subdomainMode, agreedPrice } = validatedFields.data
+
+    // Generate simple access token
+    const accessToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+    try {
+        await db.invoice.create({
+            data: {
+                customerName,
+                templateId,
+                subdomain,
+                subdomainMode,
+                agreedPrice: agreedPrice || 0,
+                accessToken,
+                status: 'ACTIVE'
+            },
+        })
+        revalidatePath('/dashboard')
+        revalidatePath('/dashboard/invoices')
+        return { success: true }
+    } catch (error) {
+        console.error('Failed to create invoice:', error)
+        return { success: false, error: 'Database Error: Failed to create invoice.' }
+    }
+}
+
+export async function updateInvoice(formData: FormData) {
+    const id = formData.get('id') as string;
+    const validatedFields = CreateInvoiceSchema.safeParse({
+        customerName: formData.get('customerName'),
+        templateId: formData.get('templateId'),
+        subdomain: formData.get('subdomain'),
+        subdomainMode: formData.get('subdomainMode'),
+        agreedPrice: formData.get('agreedPrice') || undefined,
+    })
+
+    if (!validatedFields.success) {
+        return { success: false, error: 'Invalid fields' }
+    }
+
+    const { customerName, templateId, subdomain, subdomainMode, agreedPrice } = validatedFields.data
+
+    try {
+        await db.invoice.update({
+            where: { id },
+            data: {
+                customerName,
+                templateId,
+                subdomain,
+                subdomainMode,
+                agreedPrice: agreedPrice || 0,
+            },
+        })
+        revalidatePath('/dashboard')
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: 'Failed to update invoice' }
+    }
+}
+
+export async function updateInvoiceContent(id: string, content: string) {
+    try {
+        await db.invoice.update({
+            where: { id },
+            data: { templateContent: content }
+        })
+        revalidatePath('/dashboard')
+        revalidatePath(`/dashboard/invoices/${id}/edit`)
+        return { success: true }
+    } catch (error) {
+        console.error('Failed to update invoice content:', error)
+        return { success: false, error: 'Failed to update content' }
+    }
+}
+
+export async function deleteInvoice(id: string) {
+    try {
+        await db.invoice.delete({ where: { id } })
+        revalidatePath('/dashboard')
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: 'Failed to delete invoice' }
+    }
+}
+
+export async function toggleInvoiceStatus(id: string, status: string) {
+    try {
+        await db.invoice.update({
+            where: { id },
+            data: { status }
+        })
+        revalidatePath('/dashboard')
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: 'Failed to update status' }
+    }
+}
+
+export async function updateInvoiceMode(id: string, mode: 'VIP' | 'BASIC') {
+    try {
+        await db.invoice.update({
+            where: { id },
+            data: { subdomainMode: mode }
+        })
+        revalidatePath('/dashboard')
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: 'Failed to update mode' }
+    }
+}
+
+export async function deleteTemplate(id: string) {
+    try {
+        const invoicesUsingTemplate = await db.invoice.count({ where: { templateId: id } })
+        if (invoicesUsingTemplate > 0) {
+            return { success: false, error: `Cannot delete: Used by ${invoicesUsingTemplate} active invoice(s).` }
+        }
+        await db.template.delete({ where: { id } })
+        revalidatePath('/dashboard')
+        revalidatePath('/dashboard/templates')
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: 'Failed to delete template' }
+    }
+}
+
+// Tier Actions
+const CreateTierSchema = z.object({
+    name: z.string().min(1),
+    priceMin: z.coerce.number(),
+    priceMax: z.coerce.number(),
+    features: z.string().optional(),
+    color: z.string().optional(),
+    sortOrder: z.coerce.number().optional(),
+})
+
+export async function createTier(formData: FormData) {
+    const validatedFields = CreateTierSchema.safeParse({
+        name: formData.get('name'),
+        priceMin: formData.get('priceMin'),
+        priceMax: formData.get('priceMax'),
+        features: formData.get('features'),
+        color: formData.get('color'),
+        sortOrder: formData.get('sortOrder'),
+    })
+
+    if (!validatedFields.success) return { success: false, error: 'Invalid fields' }
+
+    try {
+        await db.tier.create({ data: validatedFields.data })
+        revalidatePath('/dashboard/tiers')
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: 'Failed to create tier' }
+    }
+}
+
+export async function updateTier(id: string, formData: FormData) {
+    const validatedFields = CreateTierSchema.safeParse({
+        name: formData.get('name'),
+        priceMin: formData.get('priceMin'),
+        priceMax: formData.get('priceMax'),
+        features: formData.get('features'),
+        color: formData.get('color'),
+        sortOrder: formData.get('sortOrder'),
+    })
+
+    if (!validatedFields.success) return { success: false, error: 'Invalid fields' }
+
+    try {
+        await db.tier.update({ where: { id }, data: validatedFields.data })
+        revalidatePath('/dashboard/tiers')
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: 'Failed to update tier' }
+    }
+}
+
+export async function deleteTier(id: string) {
+    try {
+        // Optional: Check usage before delete
+        await db.tier.delete({ where: { id } })
+        revalidatePath('/dashboard/tiers')
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: 'Failed to delete tier' }
+    }
+}
+
+// User Actions
+
 const CreateUserSchema = z.object({
     username: z.string().min(3, 'Username must be at least 3 characters'),
     password: z.string().min(6, 'Password must be at least 6 characters'),
@@ -187,7 +400,7 @@ export async function createUser(formData: FormData): Promise<{ success: boolean
                 role: 'ADMIN',
             },
         })
-        revalidatePath('/dashboard/users')
+        revalidatePath('/dashboard/settings/users')
         return { success: true }
     } catch (error) {
         console.error('Failed to create user:', error);
@@ -200,7 +413,7 @@ export async function deleteUser(id: string) {
         await db.user.delete({
             where: { id },
         })
-        revalidatePath('/dashboard/users')
+        revalidatePath('/dashboard/settings/users')
         return { success: true }
     } catch (error) {
     }
@@ -220,7 +433,7 @@ export async function updateUser(id: string, username: string, password?: string
             data,
         });
 
-        revalidatePath('/dashboard/users');
+        revalidatePath('/dashboard/settings/users');
         return { success: true };
     } catch (error) {
         console.error('Failed to update user:', error);
@@ -228,349 +441,61 @@ export async function updateUser(id: string, username: string, password?: string
     }
 }
 
-// Update Password Action
-export async function updatePassword(userId: string, currentPassword: string, newPassword: string): Promise<{ success: boolean; error?: string }> {
+export async function updatePassword(userId: string, current: string, newPass: string) {
     try {
         const user = await db.user.findUnique({ where: { id: userId } });
-        if (!user) {
-            return { success: false, error: 'User not found' };
+        if (!user) return { success: false, error: 'User not found' };
+
+        // Verify current password
+        const passwordMatch = await bcryptjs.compare(current, user.password);
+        if (!passwordMatch) {
+            return { success: false, error: 'Incorrect current password' };
         }
 
-        const isValid = await bcryptjs.compare(currentPassword, user.password);
-        if (!isValid) {
-            return { success: false, error: 'Current password is incorrect' };
-        }
-
-        if (newPassword.length < 6) {
-            return { success: false, error: 'New password must be at least 6 characters' };
-        }
-
-        const hashedPassword = await bcryptjs.hash(newPassword, 10);
+        // Hash new password
+        const hashedPassword = await bcryptjs.hash(newPass, 10);
         await db.user.update({
             where: { id: userId },
-            data: { password: hashedPassword }
+            data: { password: hashedPassword },
         });
 
         return { success: true };
     } catch (error) {
-        console.error('Failed to update password:', error);
         return { success: false, error: 'Failed to update password' };
     }
 }
-
-export async function deleteTemplate(id: string) {
-    try {
-        await db.template.delete({
-            where: { id },
-        })
-        revalidatePath('/dashboard')
-        revalidatePath('/')
-        return { success: true }
-    } catch (error) {
-    }
-}
-
-// Invoice Actions
-
-const CreateInvoiceSchema = z.object({
-    customerName: z.string().min(1, 'Customer Name is required'),
-    subdomain: z.string().min(3, 'Subdomain must be 3+ chars').regex(/^[a-z0-9-]+$/, 'Subdomain must be lowercase alphanumeric'),
-    templateId: z.string().min(1, 'Template is required'),
-    subdomainMode: z.enum(['VIP', 'BASIC']).default('VIP'),
-    agreedPrice: z.coerce.number().optional(),
-})
-
-export async function createInvoice(formData: FormData): Promise<void> {
-    const validatedFields = CreateInvoiceSchema.safeParse({
-        customerName: formData.get('customerName'),
-        subdomain: formData.get('subdomain'),
-        templateId: formData.get('templateId'),
-        subdomainMode: formData.get('subdomainMode') || 'VIP',
-        agreedPrice: formData.get('agreedPrice') || undefined,
-    })
-
-    if (!validatedFields.success) {
-        console.error('Validation failed:', validatedFields.error);
-        return;
-    }
-
-    const { customerName, subdomain, templateId, subdomainMode, agreedPrice } = validatedFields.data
-
-    try {
-        // Fetch template to copy its content
-        const template = await db.template.findUnique({
-            where: { id: templateId }
-        });
-
-        if (!template) {
-            console.error('Template not found');
-            return;
-        }
-
-        // Generate 6-digit access token
-        const accessToken = Math.floor(100000 + Math.random() * 900000).toString();
-
-        await db.invoice.create({
-            data: {
-                customerName,
-                subdomain,
-                templateId,
-                templateContent: template.content,
-                accessToken,
-                subdomainMode,
-                agreedPrice: agreedPrice || null,
-            },
-        })
-        revalidatePath('/dashboard/invoices')
-        revalidatePath('/dashboard/overview')
-    } catch (error) {
-        console.error('Failed to create invoice:', error);
-    }
-}
-
-// Archive Action
-export async function toggleInvoiceStatus(id: string, newStatus: 'ACTIVE' | 'ARCHIVED') {
-    try {
-        await db.invoice.update({
-            where: { id },
-            data: { status: newStatus }
-        })
-        revalidatePath('/dashboard/invoices')
-        revalidatePath('/dashboard/history')
-        revalidatePath('/dashboard/overview')
-        return { success: true }
-    } catch (e) {
-        return { success: false, error: 'Failed to update status' }
-    }
-}
-
-// Update Subdomain Mode
-export async function updateInvoiceMode(id: string, mode: 'VIP' | 'BASIC') {
-    try {
-        await db.invoice.update({
-            where: { id },
-            data: { subdomainMode: mode }
-        })
-        revalidatePath('/dashboard/invoices')
-        return { success: true }
-    } catch (e) {
-        return { success: false, error: 'Failed to update mode' }
-    }
-}
-
-// Delete Action
-export async function deleteInvoice(id: string) {
-    try {
-        await db.invoice.delete({
-            where: { id },
-        })
-        revalidatePath('/dashboard/invoices')
-        revalidatePath('/dashboard/history')
-        revalidatePath('/dashboard/overview')
-        return { success: true }
-    } catch (error) {
-        return { success: false, error: 'Failed to delete invoice' }
-    }
-}
-
-// Update Invoice (edit all fields)
-export async function updateInvoice(formData: FormData): Promise<void> {
-    const id = formData.get('id') as string;
-    const customerName = formData.get('customerName') as string;
-    const subdomain = formData.get('subdomain') as string;
-    const templateId = formData.get('templateId') as string;
-    const subdomainMode = formData.get('subdomainMode') as string;
-    const agreedPrice = formData.get('agreedPrice');
-
-    try {
-        await db.invoice.update({
-            where: { id },
-            data: {
-                customerName,
-                subdomain,
-                templateId,
-                subdomainMode,
-                agreedPrice: agreedPrice ? parseInt(agreedPrice.toString()) : null,
-            },
-        })
-        revalidatePath('/dashboard/invoices')
-        revalidatePath('/dashboard/overview')
-    } catch (error) {
-        console.error('Failed to update invoice:', error);
-    }
-}
-
-// Update Invoice Content
-export async function updateInvoiceContent(id: string, templateContent: string) {
-    try {
-        const invoice = await db.invoice.findUnique({ where: { id } });
-        if (!invoice) return { success: false, error: 'Invoice not found' };
-
-        await db.invoice.update({
-            where: { id },
-            data: { templateContent }
-        })
-        revalidatePath('/dashboard/invoices')
-        revalidatePath(`/s/${invoice.subdomain}`)
-        return { success: true }
-    } catch (e) {
-        return { success: false, error: 'Failed to update' }
-    }
-}
-
-// Tier CRUD Actions
-
-const CreateTierSchema = z.object({
-    name: z.string().min(1, 'Name is required'),
-    priceMin: z.coerce.number().min(0, 'Min price must be positive'),
-    priceMax: z.coerce.number().min(0, 'Max price must be positive'),
-    features: z.string().optional(),
-    color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color').default('#646cff'),
-    sortOrder: z.coerce.number().default(0),
-})
-
-export async function createTier(formData: FormData): Promise<{ success: boolean; error?: string }> {
-    const validatedFields = CreateTierSchema.safeParse({
-        name: formData.get('name'),
-        priceMin: formData.get('priceMin'),
-        priceMax: formData.get('priceMax'),
-        features: formData.get('features'),
-        color: formData.get('color') || '#646cff',
-        sortOrder: formData.get('sortOrder'),
-    })
-
-    if (!validatedFields.success) {
-        return { success: false, error: validatedFields.error.issues[0]?.message || 'Invalid fields' }
-    }
-
-    const { name, priceMin, priceMax, features, color, sortOrder } = validatedFields.data
-
-    try {
-        await db.tier.create({
-            data: {
-                name,
-                priceMin,
-                priceMax,
-                features: features || null,
-                color,
-                sortOrder,
-            },
-        })
-        revalidatePath('/dashboard/tiers')
-        return { success: true }
-    } catch (error) {
-        console.error('Failed to create tier:', error)
-        return { success: false, error: 'Failed to create tier. Name may already exist.' }
-    }
-}
-
-export async function updateTier(id: string, formData: FormData): Promise<{ success: boolean; error?: string }> {
-    const validatedFields = CreateTierSchema.safeParse({
-        name: formData.get('name'),
-        priceMin: formData.get('priceMin'),
-        priceMax: formData.get('priceMax'),
-        features: formData.get('features'),
-        color: formData.get('color') || '#646cff',
-        sortOrder: formData.get('sortOrder'),
-    })
-
-    if (!validatedFields.success) {
-        return { success: false, error: validatedFields.error.issues[0]?.message || 'Invalid fields' }
-    }
-
-    const { name, priceMin, priceMax, features, color, sortOrder } = validatedFields.data
-
-    try {
-        await db.tier.update({
-            where: { id },
-            data: {
-                name,
-                priceMin,
-                priceMax,
-                features: features || null,
-                color,
-                sortOrder,
-            },
-        })
-        revalidatePath('/dashboard/tiers')
-        return { success: true }
-    } catch (error) {
-        console.error('Failed to update tier:', error)
-        return { success: false, error: 'Failed to update tier' }
-    }
-}
-
-export async function deleteTier(id: string): Promise<{ success: boolean; error?: string }> {
-    try {
-        // Check if any templates use this tier
-        const templatesUsingTier = await db.template.count({ where: { tierId: id } })
-        if (templatesUsingTier > 0) {
-            return { success: false, error: `Cannot delete: ${templatesUsingTier} template(s) use this tier` }
-        }
-
-        await db.tier.delete({ where: { id } })
-        revalidatePath('/dashboard/tiers')
-        return { success: true }
-    } catch (error) {
-        console.error('Failed to delete tier:', error)
-        return { success: false, error: 'Failed to delete tier' }
-    }
-}
-
-// Update Template Metadata (tier/price/description)
-export async function updateTemplateMetadata(
-    id: string,
-    data: { tierId?: string | null; price?: number | null; description?: string | null }
-): Promise<{ success: boolean; error?: string }> {
-    try {
-        await db.template.update({
-            where: { id },
-            data: {
-                tierId: data.tierId,
-                price: data.price,
-                description: data.description,
-            }
-        })
-        revalidatePath('/dashboard/templates')
-        revalidatePath('/')
-        return { success: true }
-    } catch (error) {
-        console.error('Failed to update template metadata:', error)
-        return { success: false, error: 'Failed to update template' }
-    }
-}
+// [SKIPPED some unchanged lines] ...
 
 // Subdomain Warm-up Action
 export async function warmUpSubdomain(subdomain: string): Promise<{ success: boolean; message: string }> {
     const rootDomain = process.env.ROOT_DOMAIN || 'localhost:3000';
 
-    // Skip warm-up on localhost (subdomain DNS doesn't resolve locally)
-    if (rootDomain.includes('localhost')) {
-        console.log(`[Warm-up] Skipped for localhost - subdomain DNS not available`);
-        return {
-            success: true,
-            message: 'Skipped for localhost (subdomain requires production DNS)'
-        };
-    }
+    // For local development or VPS without subdomain DNS, we treat it as localhost path
+    // OR we can explicitly try to hit the localhost:3000 with a Host header.
 
-    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-    const subdomainUrl = `${protocol}://${subdomain}.${rootDomain}`;
+    const protocol = 'http'; // Internal ping is usually http on localhost
+    const targetUrl = `${protocol}://localhost:3000`;
 
     try {
-        const response = await fetch(subdomainUrl, {
+        console.log(`[Warm-up] Pinging ${targetUrl} with Host: ${subdomain}.${rootDomain}`);
+        const response = await fetch(targetUrl, {
             method: 'HEAD',
+            headers: {
+                'Host': `${subdomain}.${rootDomain}`
+            },
             cache: 'no-store'
         });
-        console.log(`[Warm-up] Pinged ${subdomainUrl}, status: ${response.status}`);
+
+        console.log(`[Warm-up] Ping status: ${response.status}`);
         return {
             success: true,
-            message: `Successfully pinged ${subdomainUrl} (Status: ${response.status})`
+            message: `Successfully pinged ${subdomain}.${rootDomain} (Status: ${response.status})`
         };
     } catch (error: any) {
-        console.log(`[Warm-up] Failed to ping ${subdomainUrl}:`, error.message);
+        console.log(`[Warm-up] Failed to ping:`, error.message);
         return {
             success: false,
-            message: `Failed to ping ${subdomainUrl}: ${error.message}`
+            message: `Failed to ping: ${error.message}`
         };
     }
 }

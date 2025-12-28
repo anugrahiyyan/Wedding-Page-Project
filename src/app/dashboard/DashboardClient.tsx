@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import styles from './dashboard.module.css';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -14,16 +15,27 @@ interface DashboardClientProps {
 
 export default function DashboardClient({ children, signOutAction }: DashboardClientProps) {
     const [collapsed, setCollapsed] = useState(false);
+    const [settingsOpen, setSettingsOpen] = useState(false);
+    const pathname = usePathname();
 
     useEffect(() => {
         const saved = localStorage.getItem('rabiku-sidebar-collapsed');
         if (saved === 'true') setCollapsed(true);
     }, []);
 
+    // Auto-open settings if active
+    useEffect(() => {
+        if (pathname?.startsWith('/dashboard/settings')) {
+            setSettingsOpen(true);
+        }
+    }, [pathname]);
+
     const toggleSidebar = () => {
         const newState = !collapsed;
         setCollapsed(newState);
         localStorage.setItem('rabiku-sidebar-collapsed', String(newState));
+        // Close settings when collapsing? Optional.
+        if (newState) setSettingsOpen(false);
     };
 
     return (
@@ -61,10 +73,44 @@ export default function DashboardClient({ children, signOutAction }: DashboardCl
                             <span className={styles.navIcon}>📜</span>
                             {!collapsed && <span>Client History</span>}
                         </Link>
-                        <Link href="/dashboard/users" className={styles.navItem}>
-                            <span className={styles.navIcon}>👤</span>
-                            {!collapsed && <span>Users</span>}
-                        </Link>
+
+                        <div className={styles.navDivider} style={{ borderTop: '1px solid var(--sidebar-border)', margin: '0.5rem 0' }}></div>
+
+                        {/* Settings Dropdown */}
+                        <div>
+                            <button
+                                className={styles.dropdownButton}
+                                onClick={() => {
+                                    if (collapsed) {
+                                        setCollapsed(false);
+                                        setSettingsOpen(true);
+                                    } else {
+                                        setSettingsOpen(!settingsOpen);
+                                    }
+                                }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                    <span className={styles.navIcon}>⚙️</span>
+                                    {!collapsed && <span>Settings</span>}
+                                </div>
+                                {!collapsed && (
+                                    <span className={`${styles.chevron} ${settingsOpen ? styles.chevronRotate : ''}`}>▼</span>
+                                )}
+                            </button>
+
+                            <div className={`${styles.submenu} ${settingsOpen && !collapsed ? styles.submenuOpen : ''}`}>
+                                <Link href="/dashboard/settings" className={styles.submenuItem}>
+                                    <span>🔧</span>
+                                    <span>General</span>
+                                    <span className={styles.arrowRight}>→</span>
+                                </Link>
+                                <Link href="/dashboard/settings/users" className={styles.submenuItem}>
+                                    <span>👥</span>
+                                    <span>Manage Users</span>
+                                    <span className={styles.arrowRight}>→</span>
+                                </Link>
+                            </div>
+                        </div>
                     </nav>
                     <div className={styles.sidebarFooter}>
                         <ThemeToggle collapsed={collapsed} />

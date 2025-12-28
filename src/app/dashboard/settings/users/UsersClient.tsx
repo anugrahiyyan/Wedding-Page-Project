@@ -4,6 +4,7 @@ import { useState } from 'react';
 import styles from './page.module.css';
 import { UserForm } from './UserForm';
 import { deleteUser } from '@/app/lib/actions';
+import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 
 interface User {
     id: string;
@@ -18,9 +19,35 @@ interface UsersClientProps {
 
 export default function UsersClient({ users }: UsersClientProps) {
     const [showModal, setShowModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [userToDelete, setUserToDelete] = useState<{ id: string, username: string } | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleDeleteClick = (user: { id: string, username: string }) => {
+        setUserToDelete(user);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!userToDelete) return;
+        setIsDeleting(true);
+        await deleteUser(userToDelete.id);
+        setIsDeleting(false);
+        setShowDeleteModal(false);
+        setUserToDelete(null);
+    };
 
     return (
         <div className={styles.container}>
+            <DeleteConfirmationModal
+                isOpen={showDeleteModal}
+                title="Delete User"
+                message={`Are you sure you want to delete user "${userToDelete?.username}"? This cannot be undone.`}
+                onConfirm={confirmDelete}
+                onCancel={() => setShowDeleteModal(false)}
+                isDeleting={isDeleting}
+            />
+
             <header className={styles.header}>
                 <h1 className={styles.title}>User Management</h1>
                 <button className={styles.createButton} onClick={() => setShowModal(true)}>
@@ -61,16 +88,15 @@ export default function UsersClient({ users }: UsersClientProps) {
                                 <td>
                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                                         {/* Edit functionality remains as link for now, or can be converted to modal later */}
-                                        <a href={`/dashboard/users/${user.id}/edit`} className={styles.button} style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem', textDecoration: 'none', background: '#4b5563' }}>
+                                        <a href={`/dashboard/settings/users/${user.id}/edit`} className={styles.button} style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem', textDecoration: 'none', background: '#4b5563' }}>
                                             Edit
                                         </a>
-                                        <form action={async () => {
-                                            if (confirm('Are you sure you want to delete this user?')) {
-                                                await deleteUser(user.id);
-                                            }
-                                        }}>
-                                            <button type="submit" className={styles.deleteButton}>Delete</button>
-                                        </form>
+                                        <button
+                                            className={styles.deleteButton}
+                                            onClick={() => handleDeleteClick({ id: user.id, username: user.username })}
+                                        >
+                                            Delete
+                                        </button>
                                     </div>
                                 </td>
                             </tr>

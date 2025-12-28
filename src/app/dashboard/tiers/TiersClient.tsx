@@ -30,11 +30,40 @@ function formatIDR(amount: number): string {
     return `${(amount / 1000).toFixed(0)}k`;
 }
 
+import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
+import { deleteTier } from '@/app/lib/actions';
+
 export default function TiersClient({ tiers }: TiersClientProps) {
     const [showModal, setShowModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [tierToDelete, setTierToDelete] = useState<{ id: string, name: string } | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleDeleteClick = (tier: { id: string, name: string }) => {
+        setTierToDelete(tier);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!tierToDelete) return;
+        setIsDeleting(true);
+        await deleteTier(tierToDelete.id);
+        setIsDeleting(false);
+        setShowDeleteModal(false);
+        setTierToDelete(null);
+    };
 
     return (
         <div className={styles.container}>
+            <DeleteConfirmationModal
+                isOpen={showDeleteModal}
+                title="Delete Tier"
+                message={`Are you sure you want to delete tier "${tierToDelete?.name}"? This cannot be undone.`}
+                onConfirm={confirmDelete}
+                onCancel={() => setShowDeleteModal(false)}
+                isDeleting={isDeleting}
+            />
+
             <header className={styles.header}>
                 <h1 className={styles.title}>Tier Management</h1>
                 <button className={styles.createButton} onClick={() => setShowModal(true)}>
@@ -81,6 +110,7 @@ export default function TiersClient({ tiers }: TiersClientProps) {
                                         priceMaxFormatted: formatIDR(tier.priceMax),
                                         templateCount: tier._count.templates
                                     }}
+                                    onDelete={() => handleDeleteClick({ id: tier.id, name: tier.name })}
                                 />
                             ))}
                         </tbody>

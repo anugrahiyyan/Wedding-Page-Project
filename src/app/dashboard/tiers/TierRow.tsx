@@ -17,25 +17,15 @@ interface TierRowProps {
         sortOrder: number;
         templateCount: number;
     };
+    onDelete: () => void;
 }
 
-export function TierRow({ tier }: TierRowProps) {
+export function TierRow({ tier, onDelete }: TierRowProps) {
     const [isPending, startTransition] = useTransition();
     const [isEditing, setIsEditing] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const features = tier.features ? tier.features.split(',').map(f => f.trim()).filter(Boolean) : [];
-
-    async function handleDelete() {
-        if (!confirm(`Delete tier "${tier.name}"? This cannot be undone.`)) return;
-
-        startTransition(async () => {
-            const result = await deleteTier(tier.id);
-            if (!result.success) {
-                setError(result.error || 'Failed to delete');
-            }
-        });
-    }
 
     async function handleUpdate(formData: FormData) {
         startTransition(async () => {
@@ -133,10 +123,10 @@ export function TierRow({ tier }: TierRowProps) {
                     </button>
                     <button
                         className={styles.deleteButton}
-                        onClick={handleDelete}
+                        onClick={onDelete}
                         disabled={isPending}
                     >
-                        {isPending ? '...' : 'Delete'}
+                        Delete
                     </button>
                 </div>
                 {error && <p className={styles.error}>{error}</p>}
