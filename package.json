@@ -5,12 +5,13 @@
   "scripts": {
     "dev": "next dev",
     "build": "node src/scripts/run-strict.js next build",
-    "start": "set NODE_ENV=production && node server.js",
+    "start": "node server.js",
     "lint": "eslint",
     "db:setup": "npm run db:push && npm run db:seed",
     "db:push": "npx prisma db push",
     "db:seed": "node src/scripts/seed.js",
-    "clean": "rm -rf .next"
+    "clean": "rm -rf .next",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",

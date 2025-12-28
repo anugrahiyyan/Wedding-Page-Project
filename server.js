@@ -1,10 +1,12 @@
-const { createServer } = require('https');
+const { createServer: createHttpsServer } = require('https');
+const { createServer: createHttpServer } = require('http');
 const { parse } = require('url');
 const next = require('next');
 const fs = require('fs');
 const path = require('path');
 
-const dev = process.env.NODE_ENV !== 'production';
+// Default to production if not explicitly development
+const dev = process.env.NODE_ENV === 'development';
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
@@ -13,23 +15,31 @@ const sslDir = path.join(__dirname, 'ssl');
 const keyPath = path.join(sslDir, 'server.key');
 const certPath = path.join(sslDir, 'server.pem');
 
+let serverFactory = createHttpServer;
+let protocol = 'http';
+let port = 3000;
+
 if (fs.existsSync(keyPath) && fs.existsSync(certPath)) {
     httpsOptions.key = fs.readFileSync(keyPath);
     httpsOptions.cert = fs.readFileSync(certPath);
+    serverFactory = (opts, cb) => createHttpsServer(opts, cb);
+    protocol = 'https';
+    console.log('🔒 SSL Certificates found. Starting secure server...');
 } else {
-    console.error('Error: SSL certificates not found in ./ssl directory.');
-    console.error('Please upload server.key and server.pem via the dashboard settings or place them manually.');
-    console.error('Falling back to HTTP on port 3000 (Warning: Secure features may not work)');
-    // Fallback to simple http server if needed, or just exit gracefully
-    process.exit(1);
+    console.warn('⚠️  SSL certificates not found in ./ssl directory.');
+    console.warn('⚠️  Falling back to HTTP. (This is fine for local testing, but use SSL in production)');
+    serverFactory = (opts, cb) => createHttpServer(cb); // HTTP ignores options
 }
 
 app.prepare().then(() => {
-    createServer(httpsOptions, (req, res) => {
+    // Only pass options if using HTTPS factory (HTTP factory ignores first arg usually, or we can wrap it)
+    const server = serverFactory(httpsOptions, (req, res) => {
         const parsedUrl = parse(req.url, true);
         handle(req, res, parsedUrl);
-    }).listen(3000, (err) => {
+    });
+
+    server.listen(port, (err) => {
         if (err) throw err;
-        console.log('> Ready on https://localhost:3000');
+        console.log(`> Ready on ${protocol}://localhost:${port}`);
     });
 });
