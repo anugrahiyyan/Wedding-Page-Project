@@ -30,8 +30,8 @@ export async function middleware(request: NextRequest) {
         return NextResponse.rewrite(new URL(rewritePath, request.url));
     }
 
-    // Run Auth Middleware for Dashboard routes
-    if (url.pathname.startsWith('/dashboard')) {
+    // Run Auth Middleware for Dashboard and Login routes
+    if (url.pathname.startsWith('/dashboard') || url.pathname === '/login') {
         return authHandler(request as any);
     }
 

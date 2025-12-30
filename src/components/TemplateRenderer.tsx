@@ -281,18 +281,39 @@ export default function TemplateRenderer({
 
 
 
-    // --- Confetti Effect Helper ---
 
 
 
 
     const wrapperRef = useRef<HTMLDivElement>(null);
 
+    // Script Hydration Effect for Custom HTML (must be before conditional returns!)
+    useEffect(() => {
+        if (!htmlContent || !wrapperRef.current) return;
+
+        const container = wrapperRef.current;
+        const scripts = container.querySelectorAll('script');
+
+        scripts.forEach((script) => {
+            const newScript = document.createElement('script');
+
+            // Copy all attributes (src, type, async, defer, etc.)
+            Array.from(script.attributes).forEach((attr) => {
+                newScript.setAttribute(attr.name, attr.value);
+            });
+
+            // Copy inline content
+            newScript.textContent = script.textContent;
+
+            // Append to body to ensure execution context
+            document.body.appendChild(newScript);
+        });
+    }, [htmlContent]);
+
     if (!isClient) return <div className={styles.wrapper} style={{ minHeight: '100vh' }}></div>;
 
     const waLink = `https://wa.me/6281230826731?text=Hi,%20saya%20ingin%20pesan%20template:%20${encodeURIComponent(templateName)}`;
 
-    // If HTML content is present, render it directly
     if (htmlContent) {
         // Inject subdomain into any element with id="subdomain-field"
         const injectedHtml = htmlContent.replace(

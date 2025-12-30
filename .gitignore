@@ -48,3 +48,8 @@ noted.txt
 
 # uploads
 /public/uploads
+
+# html-template
+/html-template
+/html-template/*
+

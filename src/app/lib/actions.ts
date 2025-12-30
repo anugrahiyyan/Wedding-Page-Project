@@ -240,6 +240,10 @@ export async function createTemplate(prevState: string | undefined, formData: Fo
         return 'Database Error: Failed to create template.'
     }
 
+    // Revalidate cached pages to show new template
+    revalidatePath('/');
+    revalidatePath('/dashboard/templates');
+
     redirect(`/dashboard/templates/${template.id}`)
 }
 
