@@ -30,7 +30,7 @@ export default async function DashboardOverview() {
         select: { agreedPrice: true }
     });
 
-    const totalRevenue = allInvoices.reduce((sum, inv) => sum + (inv.agreedPrice || 0), 0);
+    const totalRevenue = allInvoices.reduce((sum: number, inv: any) => sum + (inv.agreedPrice || 0), 0);
 
     function formatIDR(amount: number): string {
         if (amount >= 1000000) {
