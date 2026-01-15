@@ -3,15 +3,9 @@ const { PrismaClient } = require('@prisma/client')
 const bcrypt = require('bcryptjs')
 const path = require('path')
 
-// Hardcode path to prisma/dev.db relative to CWD to ensure correct runtime resolution
-const dbPath = path.join(process.cwd(), 'prisma', 'dev.db')
-const url = `file:${dbPath}`
+console.log('Seeding database...')
 
-console.log('Connecting to:', url)
-
-const prisma = new PrismaClient({
-    datasourceUrl: url,
-})
+const prisma = new PrismaClient()
 
 async function main() {
     console.log('Seeding...')
