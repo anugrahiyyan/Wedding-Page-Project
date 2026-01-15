@@ -1,7 +1,7 @@
 import db from '@/lib/db';
 import HomepageClient from './HomepageClient';
 
-
+export const dynamic = 'force-dynamic';
 
 export default async function LandingPage() {
   const templates = await db.template.findMany({
