@@ -49,7 +49,6 @@ raw-html.html
 
 # uploads
 /public/uploads
-/public/images
 
 # html-template
 /html-template
