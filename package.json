@@ -10,7 +10,7 @@
     "db:push": "npx prisma db push",
     "db:seed": "node src/scripts/seed.js",
     "clean": "rm -rf .next",
-    "postinstall": "prisma generate"
+    "postinstall": "npx prisma generate"
   },
   "dependencies": {
     "@iconify/react": "^6.0.2",
