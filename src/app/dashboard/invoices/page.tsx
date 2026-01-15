@@ -17,7 +17,7 @@ export default async function InvoicesPage() {
     const rootDomain = process.env.ROOT_DOMAIN || 'localhost:3000';
 
     // Serialize for client
-    const serializedInvoices = invoices.map(inv => ({
+    const serializedInvoices = invoices.map((inv: any) => ({
         id: inv.id,
         subdomain: inv.subdomain,
         customerName: inv.customerName,
