@@ -14,7 +14,7 @@ interface HomepageClientProps {
 
 export default function HomepageClient({ templates }: HomepageClientProps) {
     return (
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange storageKey="home-theme">
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange storageKey="home-theme">
             <main className="overflow-x-hidden bg-white dark:bg-black text-black dark:text-white transition-colors duration-300">
                 <Header />
                 <Hero />
