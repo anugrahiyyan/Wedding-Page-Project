@@ -3,7 +3,7 @@ import styles from './page.module.css';
 import { toggleInvoiceStatus } from '@/app/lib/actions';
 import DeleteInvoiceButton from '@/components/DeleteInvoiceButton';
 
-
+export const dynamic = 'force-dynamic';
 
 export default async function HistoryPage() {
     const invoices = await db.invoice.findMany({

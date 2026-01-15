@@ -2,6 +2,8 @@ import { signOut } from '@/auth';
 import DashboardClient from './DashboardClient';
 import { ThemeProvider } from "@/components/theme-provider";
 
+export const dynamic = 'force-dynamic';
+
 export default function DashboardLayout({
     children,
 }: {
