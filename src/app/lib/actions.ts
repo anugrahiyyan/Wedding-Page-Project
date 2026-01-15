@@ -244,7 +244,7 @@ export async function createTemplate(prevState: string | undefined, formData: Fo
     revalidatePath('/');
     revalidatePath('/dashboard/templates');
 
-    redirect(`/dashboard/templates/${template.id}`)
+    redirect(`/editor/${template.id}`)
 }
 
 export async function updateTemplate(id: string, content: string, thumbnail?: string, htmlContent?: string) {

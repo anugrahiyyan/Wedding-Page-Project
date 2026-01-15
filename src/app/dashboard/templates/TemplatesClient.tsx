@@ -88,7 +88,7 @@ export default function TemplatesClient({ templates }: TemplatesClientProps) {
                             <div className={styles.cardContent}>
                                 <h3>{template.name}</h3>
                                 <div className={styles.actions}>
-                                    <Link href={`/dashboard/templates/${template.id}`} className={styles.editLink}>Edit</Link>
+                                    <Link href={`/editor/${template.id}`} className={styles.editLink}>Edit</Link>
                                     <Link href={`/preview/${template.id}`} target="_blank" className={styles.previewLink}>Preview</Link>
                                     <button
                                         className={styles.deleteButton}

@@ -3,6 +3,28 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { auth } from '@/auth';
 
+// Expanded supported formats
+const VALID_IMAGE_TYPES = [
+    'image/jpeg', 'image/jpg', 'image/png', 'image/webp',
+    'image/gif', 'image/svg+xml', 'image/bmp', 'image/tiff',
+    'image/avif'
+];
+
+const VALID_VIDEO_TYPES = [
+    'video/mp4', 'video/webm', 'video/quicktime', // mov
+    'video/x-msvideo', // avi
+    'video/x-matroska', // mkv
+    'video/mp2t', // ts
+    'video/mpeg' // mpg
+];
+
+const ALLOWED_EXTENSIONS = [
+    // Images
+    'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'bmp', 'tiff', 'tif', 'avif',
+    // Videos
+    'mp4', 'webm', 'mov', 'avi', 'mkv', 'ts', 'mpg', 'mpeg'
+];
+
 export async function POST(request: NextRequest) {
     try {
         // 1. Authentication Check
@@ -12,57 +34,82 @@ export async function POST(request: NextRequest) {
         }
 
         const formData = await request.formData();
-        const file = formData.get('file') as File;
+        const files = formData.getAll('file') as File[];
+        const templateId = formData.get('templateId') as string | null;
 
-        if (!file) {
-            return NextResponse.json({ success: false, error: 'No file uploaded' }, { status: 400 });
+        if (!files || files.length === 0) {
+            return NextResponse.json({ success: false, error: 'No files uploaded' }, { status: 400 });
         }
 
-        // 2. File Type Validation (MIME)
-        const validMimeTypes = [
-            'image/jpeg', 'image/png', 'image/webp', 'image/gif',
-            'video/mp4', 'video/webm'
-        ];
-        if (!validMimeTypes.includes(file.type)) {
-            return NextResponse.json({ success: false, error: 'Invalid file type. Only images and videos are allowed.' }, { status: 400 });
+        // Process all files (bulk upload support)
+        const results: { url: string; name: string; type: string }[] = [];
+        const errors: string[] = [];
+
+        for (const file of files) {
+            // 2. File Type Validation (MIME)
+            const isImage = VALID_IMAGE_TYPES.includes(file.type);
+            const isVideo = VALID_VIDEO_TYPES.includes(file.type);
+
+            if (!isImage && !isVideo) {
+                errors.push(`${file.name}: Unsupported format (${file.type})`);
+                continue;
+            }
+
+            // 3. Extension validation
+            const originalName = file.name.toLowerCase();
+            const ext = originalName.split('.').pop();
+
+            if (!ext || !ALLOWED_EXTENSIONS.includes(ext)) {
+                errors.push(`${file.name}: Invalid extension`);
+                continue;
+            }
+
+            // 4. Double extension check (security)
+            if ((originalName.match(/\./g) || []).length > 1) {
+                errors.push(`${file.name}: Double extensions not allowed`);
+                continue;
+            }
+
+            const bytes = await file.arrayBuffer();
+            const buffer = Buffer.from(bytes);
+
+            // Generate Safe Filename
+            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+            const finalFilename = `${uniqueSuffix}.${ext}`;
+
+            // Determine upload directory: uploads/[templateId]/[images|videos]
+            let uploadSubPath = 'uploads';
+            if (templateId && /^[a-zA-Z0-9_-]+$/.test(templateId)) {
+                uploadSubPath = `uploads/${templateId}/${isImage ? 'images' : 'videos'}`;
+            }
+
+            const uploadDir = join(process.cwd(), 'public', uploadSubPath);
+            await mkdir(uploadDir, { recursive: true });
+
+            const path = join(uploadDir, finalFilename);
+            await writeFile(path, buffer);
+
+            const url = `/${uploadSubPath}/${finalFilename}`;
+            results.push({
+                url,
+                name: file.name,
+                type: isImage ? 'image' : 'video'
+            });
         }
 
-        // 3. Double Extension & RCE Prevention
-        // We fundamentally prevent this by NOT using the user's filename structure.
-        // We verify the extension against the whitelist and generate a completely new name.
-        const originalName = file.name.toLowerCase();
-
-        // Check for suspicious patterns like multiple dots (often used in double extension attacks)
-        // Although we rename the file, rejecting these gives immediate feedback on security policy.
-        if ((originalName.match(/\./g) || []).length > 1) {
-            return NextResponse.json({ success: false, error: 'Security Violation: Double extensions are not allowed.' }, { status: 400 });
+        if (results.length === 0 && errors.length > 0) {
+            return NextResponse.json({
+                success: false,
+                error: errors.join('; ')
+            }, { status: 400 });
         }
 
-        // Extract and validate extension
-        const ext = originalName.split('.').pop();
-        const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4', 'webm'];
-
-        if (!ext || !allowedExtensions.includes(ext)) {
-            return NextResponse.json({ success: false, error: 'Invalid file extension.' }, { status: 400 });
-        }
-
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-
-        // Generate Safe Filename: Timestamp-Random.ext
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const finalFilename = `${uniqueSuffix}.${ext}`;
-
-        // Ensure directory exists
-        const uploadDir = join(process.cwd(), 'public', 'uploads');
-        await mkdir(uploadDir, { recursive: true });
-
-        const path = join(uploadDir, finalFilename);
-        await writeFile(path, buffer);
-
-        const url = `/uploads/${finalFilename}`;
-
-        return NextResponse.json({ success: true, url });
+        return NextResponse.json({
+            success: true,
+            uploads: results,
+            url: results[0]?.url, // Backward compatible
+            errors: errors.length > 0 ? errors : undefined
+        });
     } catch (error) {
         console.error('Upload error:', error);
         return NextResponse.json({ success: false, error: 'Upload failed' }, { status: 500 });

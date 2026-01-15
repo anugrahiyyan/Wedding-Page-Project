@@ -57,7 +57,7 @@ export default function UserEditor({ user }: { user: any }) {
                     <button type="submit" disabled={isSaving} className={styles.saveBtn}>
                         {isSaving ? 'Saving...' : 'Update User'}
                     </button>
-                    <a href="/dashboard/users" className={styles.cancelLink}>Cancel</a>
+                    <a href="/dashboard/settings/users" className={styles.cancelLink}>Cancel</a>
                 </div>
             </form>
         </div>

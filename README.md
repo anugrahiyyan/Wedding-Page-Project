@@ -85,7 +85,7 @@ npm run dev
 npm run build
 ```
 
-> **Note**: This command STRICTLY uses variables from `.env`. Any `.env.local` file will be temporarily ignored to ensure a clean production build properly reflects the default configuration.
+> **Note**: This command STRICTLY uses variables from `.env`. Any `.env.example` file will be temporarily ignored to ensure a clean production build properly reflects the default configuration.
 
 ### 2. Start the production server:
 

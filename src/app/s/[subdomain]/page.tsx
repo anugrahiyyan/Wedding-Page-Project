@@ -1,10 +1,8 @@
 import db from '@/lib/db';
 import { notFound } from 'next/navigation';
 import TemplateRenderer from '@/components/TemplateRenderer';
-
+import { getGuestBySlug } from '@/app/lib/guest-actions';
 import { Metadata } from 'next';
-
-
 
 export async function generateMetadata({ params }: { params: Promise<{ subdomain: string }> }): Promise<Metadata> {
     const resolvedParams = await params;
@@ -47,8 +45,19 @@ export async function generateMetadata({ params }: { params: Promise<{ subdomain
     };
 }
 
-export default async function SubdomainPage({ params }: { params: Promise<{ subdomain: string }> }) {
+export default async function SubdomainPage({
+    params,
+    searchParams
+}: {
+    params: Promise<{ subdomain: string }>,
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
     const resolvedParams = await params;
+    const resolvedSearchParams = await searchParams;
+
+    // Check for guest slug in 'to' or 'g' or 'guest' param
+    const guestSlug = (resolvedSearchParams.to || resolvedSearchParams.g || resolvedSearchParams.guest) as string | undefined;
+
     const invoice = await db.invoice.findUnique({
         where: { subdomain: resolvedParams.subdomain },
         include: {
@@ -65,6 +74,21 @@ export default async function SubdomainPage({ params }: { params: Promise<{ subd
     // Block access if invoice doesn't exist, has no template, or is ARCHIVED
     if (!invoice || !invoice.template || invoice.status === 'ARCHIVED') {
         notFound();
+    }
+
+    // Fetch guest if slug is present
+    let activeGuest = null;
+    let guestName = null;
+
+    if (guestSlug) {
+        try {
+            activeGuest = await getGuestBySlug(invoice.id, guestSlug);
+            if (activeGuest) {
+                guestName = activeGuest.name;
+            }
+        } catch (e) {
+            console.error("Error fetching guest:", e);
+        }
     }
 
     // Use custom invoice HTML if available, otherwise fall back to template
@@ -90,7 +114,7 @@ export default async function SubdomainPage({ params }: { params: Promise<{ subd
             htmlContent={htmlContent}
             subdomain={resolvedParams.subdomain}
             initialWishes={initialWishes}
+            guestName={guestName}
         />
     );
 }
-

@@ -327,8 +327,11 @@ export default function InvoiceClient({ invoices, templates, rootDomain }: Invoi
                                                     </button>
                                                     {openDropdown === inv.id && (
                                                         <div className={styles.dropdownMenu}>
-                                                            <a href={`/dashboard/invoices/${inv.id}/edit`} className={styles.dropdownItem}>
+                                                            <a href={`/editor/invoice/${inv.id}`} className={styles.dropdownItem}>
                                                                 ✏️ Edit Template
+                                                            </a>
+                                                            <a href={`/dashboard/invoices/${inv.id}/guests`} className={styles.dropdownItem}>
+                                                                👥 Manage Guests
                                                             </a>
                                                             <a
                                                                 href={url + '/rsvp?token=' + inv.accessToken}

@@ -60,6 +60,22 @@ model Invoice {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   rsvpSubmissions RsvpSubmission[]
+  guests          Guest[]
+}
+
+model Guest {
+  id        String   @id @default(cuid())
+  invoiceId String
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  name      String
+  slug      String   // URL friendly ID
+  token     String   @default(cuid())
+  phone     String?
+  status    String   @default("PENDING") // PENDING, SENT, OPENED, RSVP_YES, RSVP_NO
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([invoiceId, slug])
 }
 
 model RsvpSubmission {
