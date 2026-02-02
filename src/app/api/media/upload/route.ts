@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { auth } from '@/auth';
+import { checkCsrf } from '@/lib/csrf';
 
 // Expanded supported formats
 const VALID_IMAGE_TYPES = [
@@ -26,6 +27,10 @@ const ALLOWED_EXTENSIONS = [
 ];
 
 export async function POST(request: NextRequest) {
+    // CSRF Protection
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
+
     try {
         // 1. Authentication Check
         const session = await auth();

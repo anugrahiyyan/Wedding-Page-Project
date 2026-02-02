@@ -22,6 +22,10 @@
 /prisma/dev.db
 *.db
 *.db-journal
+/tests
+/src/app/letter-r-logo-design.zip
+/src/app/favicon.jpg
+/src/app/untitled_45.eps
 
 # misc
 .DS_Store

@@ -3,46 +3,7 @@
 import db from '@/lib/db';
 import { VirtualFile } from '@/types/virtual-file';
 import { revalidatePath } from 'next/cache';
-
-// Helper to ensure initial structure exists
-const DEFAULT_FILES: VirtualFile[] = [
-    {
-        id: 'root-index',
-        name: 'index.html',
-        type: 'file',
-        language: 'html',
-        content: `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Wedding</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <h1>Welcome</h1>
-    <script src="script.js"></script>
-</body>
-</html>`
-    },
-    {
-        id: 'root-style',
-        name: 'style.css',
-        type: 'file',
-        language: 'css',
-        content: `body {
-    background: #f0f0f0;
-    font-family: sans-serif;
-}`
-    },
-    {
-        id: 'root-script',
-        name: 'script.js',
-        type: 'file',
-        language: 'javascript',
-        content: `console.log('Hello world');`
-    }
-];
+import { DEFAULT_FILES } from './template-defaults';
 
 export async function getTemplateFiles(templateId: string): Promise<VirtualFile[]> {
     try {

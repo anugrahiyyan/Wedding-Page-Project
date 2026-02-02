@@ -7,17 +7,39 @@ import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
 import bcryptjs from 'bcryptjs'
+import { DEFAULT_FILES } from './template-defaults'
 
 export async function authenticate(prevState: string | undefined, formData: FormData) {
     try {
+        // CSRF Protection: Validate origin for login action
+        const headersList = await headers();
+        const origin = headersList.get('origin');
+        const referer = headersList.get('referer');
+        const host = headersList.get('host') || '';
+        const rootDomain = process.env.ROOT_DOMAIN || '';
+
+        // Check if origin is trusted
+        const requestOrigin = origin || (referer ? new URL(referer).origin : null);
+        if (requestOrigin) {
+            const originHost = new URL(requestOrigin).host;
+            const isTrusted =
+                originHost === host ||
+                originHost === 'localhost:3000' ||
+                originHost === rootDomain ||
+                originHost.endsWith(`.${rootDomain.replace(/:\d+$/, '')}`);
+
+            if (!isTrusted) {
+                console.warn(`[CSRF] Login blocked from untrusted origin: ${requestOrigin}`);
+                return 'Invalid request origin.';
+            }
+        }
+
         const data = Object.fromEntries(formData);
         console.log('Login attempt for:', data.username);
 
         // Determine base URL: specific env var > inferred from headers > default
         let baseUrl = process.env.AUTH_URL;
         if (!baseUrl) {
-            const headersList = await headers();
-            const host = headersList.get('host');
             const proto = headersList.get('x-forwarded-proto') || 'http';
             if (host) baseUrl = `${proto}://${host}`;
         }
@@ -70,165 +92,17 @@ export async function createTemplate(prevState: string | undefined, formData: Fo
 
     const { name, tierId, price, description } = validatedFields.data
 
-    // Default HTML Template with Injected RSVP Logic
-    const defaultHtml = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Wedding of Jane & John</title>
-    <style>
-        /* BASE STYLES */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #fdf6f0;
-            color: #4a4a4a;
-            line-height: 1.6;
-        }
-        section { padding: 4rem 2rem; max-width: 1000px; margin: 0 auto; text-align: center; }
-        
-        /* HERO */
-        .hero {
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1950&q=80');
-            background-size: cover;
-            background-position: center;
-            color: white;
-        }
-        .hero h1 { font-size: 3.5rem; margin-bottom: 1rem; font-family: 'Great Vibes', cursive; }
-        .hero p { font-size: 1.5rem; font-weight: 300; }
-
-        /* RSVP FORM */
-        .rsvp-container {
-            background: white;
-            padding: 3rem;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            margin-top: 3rem;
-        }
-        .form-group { margin-bottom: 1.5rem; text-align: left; }
-        label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
-        input, select, textarea {
-            width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 1rem;
-        }
-        button[type="submit"] {
-            background: #d4a68d;
-            color: white;
-            border: none;
-            padding: 1rem 2rem;
-            font-size: 1.1rem;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: background 0.3s;
-            width: 100%;
-        }
-        button[type="submit"]:hover { background: #c08e72; }
-        #rsvp-message { margin-top: 1rem; font-weight: bold; }
-        .success { color: green; }
-        .error { color: red; }
-    </style>
-    <!-- Font for elegant titles -->
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
-</head>
-<body>
-
-    <!-- HERO SECTION -->
-    <header class="hero">
-        <h1>Jane & John</h1>
-        <p>Are getting married!</p>
-        <p>December 25, 2025</p>
-    </header>
-
-    <!-- STORY SECTION -->
-    <section>
-        <h2>Our Story</h2>
-        <p>We met at a coffee shop on a rainy Tuesday. One cup of latte later, we knew it was forever. Join us as we celebrate our love.</p>
-    </section>
-
-    <!-- RSVP SECTION (CRITICAL: DO NOT REMOVE ID="rsvp-form") -->
-    <section>
-        <div class="rsvp-container">
-            <h2>RSVP</h2>
-            <p>Please confirm your attendance by Dec 1, 2025</p>
-            
-            <form id="rsvp-form" method="POST" onsubmit="return typeof window.submitRsvpForm === 'function' ? window.submitRsvpForm(event) : true">
-                <!-- Hidden Subdomain Field (Filled automatically by TemplateRenderer) -->
-                <input type="hidden" name="subdomain" id="subdomain-field">
-                
-                <div class="form-group">
-                    <label>Your Name</label>
-                    <input type="text" name="guestName" required placeholder="Enter full name">
-                </div>
-                
-                <div class="form-group">
-                    <label>Email (Optional)</label>
-                    <input type="email" name="email" placeholder="For updates">
-                </div>
-
-                <div class="form-group">
-                    <label>Will you attend?</label>
-                    <select name="attending">
-                        <option value="true">Yes, I will be there!</option>
-                        <option value="false">Sorry, I can't come</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Message for the couple</label>
-                    <textarea name="comment" rows="3" placeholder="Write your wishes..."></textarea>
-                </div>
-
-                <button type="submit" id="submit-btn">Send Confirmation</button>
-                <div id="rsvp-message"></div>
-            </form>
-        </div>
-    </section>
-
-    <!-- SCRIPT TO HANDLE RSVP SUBMISSION -->
-    <script>
-        (function() {
-            // Light-weight fallback to fill subdomain if React hasn't injected it yet
-            function initRSVP() {
-                const hiddenField = document.getElementById('subdomain-field');
-                if (hiddenField && !hiddenField.value) {
-                    const pathParts = window.location.pathname.split('/').filter(Boolean);
-                    const sIndex = pathParts.indexOf('s');
-                    if (sIndex !== -1 && pathParts[sIndex + 1]) {
-                        hiddenField.value = pathParts[sIndex + 1];
-                    } else {
-                        const hostParts = window.location.hostname.split('.');
-                        if (hostParts.length >= 2 && hostParts[0] !== 'www' && hostParts[0] !== 'localhost') {
-                            hiddenField.value = hostParts[0];
-                        }
-                    }
-                }
-            }
-
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initRSVP);
-            } else {
-                initRSVP();
-            }
-        })();
-    </script>
-</body>
-</html>`;
+    // Use centralized DEFAULT_FILES from file-actions.ts
+    // Extract index.html content for htmlContent field
+    const indexFile = DEFAULT_FILES.find(f => f.name === 'index.html');
+    const defaultHtml = indexFile?.content || '';
 
     let template;
     try {
         template = await db.template.create({
             data: {
                 name,
-                content: '{}', // Deprecated JSON content
+                content: JSON.stringify(DEFAULT_FILES), // VFS structure
                 htmlContent: defaultHtml,
                 tierId: tierId || null,
                 price: price || null,

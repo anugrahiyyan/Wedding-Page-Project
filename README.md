@@ -96,7 +96,7 @@ npm start
 
 ```bash
 npm install -g pm2
-pm2 start npm --name wedding-page -- start
+pm2 start server.js --name "wedding-page"
 pm2 save
 pm2 startup
 ```

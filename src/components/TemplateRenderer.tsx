@@ -1,7 +1,30 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import styles from './TemplateRenderer.module.css';
+
+// Helper function to normalize HTML for rendering inside a div
+// Extracts head + body content, stripping DOCTYPE/html/head/body wrapper tags
+function normalizeHtmlForDiv(html: string): string {
+    // Remove DOCTYPE
+    html = html.replace(/<!DOCTYPE[^>]*>/i, '');
+
+    // Extract head content (we need to preserve styles, scripts, base tag)
+    const headMatch = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+    const headContent = headMatch ? headMatch[1] : '';
+
+    // Extract body content
+    const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+    const bodyContent = bodyMatch ? bodyMatch[1] : '';
+
+    // If we found structured HTML, combine head + body content without wrapper tags
+    if (headContent || bodyContent) {
+        return headContent + bodyContent;
+    }
+
+    // If no structured HTML found, return as-is (already a fragment)
+    return html;
+}
 
 interface WishMessage {
     guestName: string;
@@ -28,35 +51,46 @@ export default function TemplateRenderer({
 }) {
     const [wishes, setWishes] = useState<WishMessage[]>(initialWishes);
     const [currentBubble, setCurrentBubble] = useState<WishMessage | null>(null);
-    const [bubbleIndex, setBubbleIndex] = useState(0);
     const wrapperRef = useRef<HTMLDivElement>(null);
+    const hasAutoFilledRef = useRef(false); // Prevent re-filling inputs after user types
 
-    // Show bubbles logic (client-only effect)
+    // Show bubbles logic (client-only effect) - uses refs to avoid re-render loops
+    const bubbleIndexRef = useRef(0);
     useEffect(() => {
         if (wishes.length === 0) return;
         const sortedWishes = [...wishes].reverse();
 
-        const showNextBubble = () => {
-            setCurrentBubble(sortedWishes[bubbleIndex % sortedWishes.length]);
+        const intervalId = setInterval(() => {
+            // Show bubble
+            setCurrentBubble(sortedWishes[bubbleIndexRef.current % sortedWishes.length]);
+
+            // Hide after 2.5 seconds
             setTimeout(() => {
                 setCurrentBubble(null);
-                setTimeout(() => {
-                    setBubbleIndex(prev => (prev + 1) % sortedWishes.length);
-                }, 500);
+                bubbleIndexRef.current = (bubbleIndexRef.current + 1) % sortedWishes.length;
             }, 2500);
-        };
-        showNextBubble();
-    }, [bubbleIndex, wishes]);
+        }, 4000); // Show a new bubble every 4 seconds
 
-    // Auto-fill guest name logic (client-only)
+        return () => clearInterval(intervalId);
+    }, [wishes]); // Only re-run when wishes change, NOT on index change
+
+    // Auto-fill guest name logic (client-only) - runs ONCE on mount only
     useEffect(() => {
-        if (guestName && typeof window !== 'undefined') {
-            const inputs = document.querySelectorAll('input[name="guestName"]');
-            inputs.forEach(input => {
-                (input as HTMLInputElement).value = guestName;
+        if (guestName && typeof window !== 'undefined' && !hasAutoFilledRef.current) {
+            hasAutoFilledRef.current = true;
+            // Delay to ensure DOM is ready
+            requestAnimationFrame(() => {
+                const inputs = document.querySelectorAll('input[name="guestName"]');
+                inputs.forEach(input => {
+                    const inputEl = input as HTMLInputElement;
+                    // Only fill if empty (don't overwrite user input)
+                    if (!inputEl.value) {
+                        inputEl.value = guestName;
+                    }
+                });
             });
         }
-    }, [guestName, htmlContent]);
+    }, [guestName]); // Remove htmlContent dependency!
 
     // Expose global functions for HTML templates (client-only)
     useEffect(() => {
@@ -195,43 +229,41 @@ export default function TemplateRenderer({
         });
     }, [htmlContent]);
 
-    // Process HTML content - this runs on BOTH server and client for consistent output
-    if (htmlContent) {
-        let injectedHtml = htmlContent;
+    // CRITICAL: Memoize HTML processing to prevent re-computation on bubble state changes
+    // This ensures the DOM isn't replaced when currentBubble toggles, preserving user input
+    const injectedHtml = useMemo(() => {
+        if (!htmlContent) return null;
+
+        let html = normalizeHtmlForDiv(htmlContent);
 
         // Inject base tag if we have a valid subdomain and no existing base tag
-        if (subdomain && !/<base[\s>\/]/i.test(htmlContent)) {
+        if (subdomain && !/<base[\s>\/]/i.test(html)) {
             const baseTag = `<base href="/s/${subdomain}/" />`;
-
-            if (/<head>/i.test(htmlContent)) {
-                injectedHtml = htmlContent.replace(/<head>/i, `<head>${baseTag}`);
-            } else if (/<head\s[^>]*>/i.test(htmlContent)) {
-                injectedHtml = htmlContent.replace(/<head\s[^>]*>/i, `$&${baseTag}`);
-            } else if (/<html[^>]*>/i.test(htmlContent)) {
-                injectedHtml = htmlContent.replace(/<html[^>]*>/i, `$&<head>${baseTag}</head>`);
-            } else {
-                // Fallback: prepend base tag
-                injectedHtml = `<head>${baseTag}</head>${htmlContent}`;
-            }
+            html = baseTag + html;
         }
 
         // Inject subdomain value into hidden field
-        injectedHtml = injectedHtml.replace(
+        html = html.replace(
             /id\s*=\s*["']subdomain-field["']/i,
             (match) => `${match} value="${subdomain}"`
         );
 
         // Replace guest name placeholders
         if (guestName) {
-            injectedHtml = injectedHtml
+            html = html
                 .replace(/\{\{\s*guest_name\s*\}\}/gi, guestName)
                 .replace(/\[\s*guest_name\s*\]/gi, guestName);
         } else {
-            injectedHtml = injectedHtml
+            html = html
                 .replace(/\{\{\s*guest_name\s*\}\}/gi, "Family & Friends")
                 .replace(/\[\s*guest_name\s*\]/gi, "Family & Friends");
         }
 
+        return html;
+    }, [htmlContent, subdomain, guestName]); // Only recompute when these change, NOT on bubble state
+
+    // Render with memoized HTML
+    if (injectedHtml) {
         return (
             <div ref={wrapperRef} className={styles.wrapper}>
                 <div dangerouslySetInnerHTML={{ __html: injectedHtml }} />

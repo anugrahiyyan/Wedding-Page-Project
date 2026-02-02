@@ -14,13 +14,23 @@ export default function DeleteInvoiceButton({ id }: { id: string }) {
             <button
                 type="submit"
                 style={{
-                    background: '#dc2626',
-                    color: 'white',
-                    border: 'none',
-                    padding: '0.25rem 0.75rem',
-                    borderRadius: '4px',
+                    background: 'transparent',
+                    color: '#dc2626',
+                    border: '1px solid #dc2626',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '8px',
                     cursor: 'pointer',
-                    fontSize: '0.875rem'
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#dc2626';
+                    e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = '#dc2626';
                 }}
                 title="Delete Permanently"
             >

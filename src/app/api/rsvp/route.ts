@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { revalidatePath } from 'next/cache';
+import { checkCsrf } from '@/lib/csrf';
 
 export async function POST(request: NextRequest) {
+    // CSRF Protection: Validate origin
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
+
     try {
         const body = await request.json();
         console.log('RSVP Payload received:', body);

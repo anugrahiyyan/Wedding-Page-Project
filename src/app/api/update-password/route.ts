@@ -2,8 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import db from '@/lib/db';
 import bcryptjs from 'bcryptjs';
+import { checkCsrf } from '@/lib/csrf';
 
 export async function POST(request: NextRequest) {
+    // CSRF Protection
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
+
     try {
         const session = await auth();
         if (!session?.user?.name) {
